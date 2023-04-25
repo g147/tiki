@@ -2,20 +2,19 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.COLORS = exports.parseColor = exports.pack = exports.asString = exports.isTransparent = exports.color = void 0;
 var parser_1 = require("../syntax/parser");
-var tokenizer_1 = require("../syntax/tokenizer");
 var angle_1 = require("./angle");
 var length_percentage_1 = require("./length-percentage");
 exports.color = {
     name: 'color',
     parse: function (context, value) {
-        if (value.type === tokenizer_1.TokenType.FUNCTION) {
+        if (value.type === 18 /* FUNCTION */) {
             var colorFunction = SUPPORTED_COLOR_FUNCTIONS[value.name];
             if (typeof colorFunction === 'undefined') {
                 throw new Error("Attempting to parse an unsupported color function \"" + value.name + "\"");
             }
             return colorFunction(context, value.values);
         }
-        if (value.type === tokenizer_1.TokenType.HASH_TOKEN) {
+        if (value.type === 5 /* HASH_TOKEN */) {
             if (value.value.length === 3) {
                 var r = value.value.substring(0, 1);
                 var g = value.value.substring(1, 2);
@@ -43,7 +42,7 @@ exports.color = {
                 return exports.pack(parseInt(r, 16), parseInt(g, 16), parseInt(b, 16), parseInt(a, 16) / 255);
             }
         }
-        if (value.type === tokenizer_1.TokenType.IDENT_TOKEN) {
+        if (value.type === 20 /* IDENT_TOKEN */) {
             var namedColor = exports.COLORS[value.value.toUpperCase()];
             if (typeof namedColor !== 'undefined') {
                 return namedColor;
@@ -67,10 +66,10 @@ var pack = function (r, g, b, a) {
 };
 exports.pack = pack;
 var getTokenColorValue = function (token, i) {
-    if (token.type === tokenizer_1.TokenType.NUMBER_TOKEN) {
+    if (token.type === 17 /* NUMBER_TOKEN */) {
         return token.number;
     }
-    if (token.type === tokenizer_1.TokenType.PERCENTAGE_TOKEN) {
+    if (token.type === 16 /* PERCENTAGE_TOKEN */) {
         var max = i === 3 ? 1 : 255;
         return i === 3 ? (token.number / 100) * max : Math.round((token.number / 100) * max);
     }
@@ -111,7 +110,7 @@ function hue2rgb(t1, t2, hue) {
 var hsl = function (context, args) {
     var tokens = args.filter(parser_1.nonFunctionArgSeparator);
     var hue = tokens[0], saturation = tokens[1], lightness = tokens[2], alpha = tokens[3];
-    var h = (hue.type === tokenizer_1.TokenType.NUMBER_TOKEN ? angle_1.deg(hue.number) : angle_1.angle.parse(context, hue)) / (Math.PI * 2);
+    var h = (hue.type === 17 /* NUMBER_TOKEN */ ? angle_1.deg(hue.number) : angle_1.angle.parse(context, hue)) / (Math.PI * 2);
     var s = length_percentage_1.isLengthPercentage(saturation) ? saturation.number / 100 : 0;
     var l = length_percentage_1.isLengthPercentage(lightness) ? lightness.number / 100 : 0;
     var a = typeof alpha !== 'undefined' && length_percentage_1.isLengthPercentage(alpha) ? length_percentage_1.getAbsoluteValue(alpha, 1) : 1;

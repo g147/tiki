@@ -65,9 +65,9 @@ if (typeof window !== 'undefined') {
 }
 var renderElement = function (element, opts) { return __awaiter(void 0, void 0, void 0, function () {
     var ownerDocument, defaultView, resourceOptions, contextOptions, windowOptions, windowBounds, context, foreignObjectRendering, cloneOptions, documentCloner, clonedElement, container, _a, width, height, left, top, backgroundColor, renderOptions, canvas, renderer, root, renderer;
-    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
-    return __generator(this, function (_t) {
-        switch (_t.label) {
+    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
+    return __generator(this, function (_u) {
+        switch (_u.label) {
             case 0:
                 if (!element || typeof element !== 'object') {
                     return [2 /*return*/, Promise.reject('Invalid element provided as first argument')];
@@ -97,6 +97,7 @@ var renderElement = function (element, opts) { return __awaiter(void 0, void 0, 
                 context = new context_1.Context(contextOptions, windowBounds);
                 foreignObjectRendering = (_k = opts.foreignObjectRendering) !== null && _k !== void 0 ? _k : false;
                 cloneOptions = {
+                    allowTaint: (_l = opts.allowTaint) !== null && _l !== void 0 ? _l : false,
                     onclone: opts.onclone,
                     ignoreElements: opts.ignoreElements,
                     inlineImages: foreignObjectRendering,
@@ -110,7 +111,7 @@ var renderElement = function (element, opts) { return __awaiter(void 0, void 0, 
                 }
                 return [4 /*yield*/, documentCloner.toIFrame(ownerDocument, windowBounds)];
             case 1:
-                container = _t.sent();
+                container = _u.sent();
                 _a = node_parser_1.isBodyElement(clonedElement) || node_parser_1.isHTMLElement(clonedElement)
                     ? bounds_1.parseDocumentSize(clonedElement.ownerDocument)
                     : bounds_1.parseBounds(context, clonedElement), width = _a.width, height = _a.height, left = _a.left, top = _a.top;
@@ -118,18 +119,18 @@ var renderElement = function (element, opts) { return __awaiter(void 0, void 0, 
                 renderOptions = {
                     canvas: opts.canvas,
                     backgroundColor: backgroundColor,
-                    scale: (_m = (_l = opts.scale) !== null && _l !== void 0 ? _l : defaultView.devicePixelRatio) !== null && _m !== void 0 ? _m : 1,
-                    x: ((_o = opts.x) !== null && _o !== void 0 ? _o : 0) + left,
-                    y: ((_p = opts.y) !== null && _p !== void 0 ? _p : 0) + top,
-                    width: (_q = opts.width) !== null && _q !== void 0 ? _q : Math.ceil(width),
-                    height: (_r = opts.height) !== null && _r !== void 0 ? _r : Math.ceil(height)
+                    scale: (_o = (_m = opts.scale) !== null && _m !== void 0 ? _m : defaultView.devicePixelRatio) !== null && _o !== void 0 ? _o : 1,
+                    x: ((_p = opts.x) !== null && _p !== void 0 ? _p : 0) + left,
+                    y: ((_q = opts.y) !== null && _q !== void 0 ? _q : 0) + top,
+                    width: (_r = opts.width) !== null && _r !== void 0 ? _r : Math.ceil(width),
+                    height: (_s = opts.height) !== null && _s !== void 0 ? _s : Math.ceil(height)
                 };
                 if (!foreignObjectRendering) return [3 /*break*/, 3];
                 context.logger.debug("Document cloned, using foreign object rendering");
                 renderer = new foreignobject_renderer_1.ForeignObjectRenderer(context, renderOptions);
                 return [4 /*yield*/, renderer.render(clonedElement)];
             case 2:
-                canvas = _t.sent();
+                canvas = _u.sent();
                 return [3 /*break*/, 5];
             case 3:
                 context.logger.debug("Document cloned, element located at " + left + "," + top + " with size " + width + "x" + height + " using computed rendering");
@@ -142,10 +143,10 @@ var renderElement = function (element, opts) { return __awaiter(void 0, void 0, 
                 renderer = new canvas_renderer_1.CanvasRenderer(context, renderOptions);
                 return [4 /*yield*/, renderer.render(root)];
             case 4:
-                canvas = _t.sent();
-                _t.label = 5;
+                canvas = _u.sent();
+                _u.label = 5;
             case 5:
-                if ((_s = opts.removeContainer) !== null && _s !== void 0 ? _s : true) {
+                if ((_t = opts.removeContainer) !== null && _t !== void 0 ? _t : true) {
                     if (!document_cloner_1.DocumentCloner.destroy(container)) {
                         context.logger.error("Cannot detach cloned iframe as it is not in the DOM anymore");
                     }

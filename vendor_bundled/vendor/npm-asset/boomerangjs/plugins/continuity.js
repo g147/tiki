@@ -2,6 +2,8 @@
  * The Continuity plugin measures performance and user experience metrics beyond
  * just the traditional Page Load timings.
  *
+ * This plugin has a corresponding {@tutorial header-snippets} that helps measure events prior to Boomerang loading.
+ *
  * ## Approach
  *
  * The goal of the Continuity plugin is to capture the important aspects of your
@@ -77,7 +79,7 @@
  * * A `PerformanceObserver` will be turned on to capture all Long Tasks that happen
  *     on the page.
  * * Long Tasks will be used to calculate _Time to Interactive_
- * * A log (`c.lt`), timeline (`c.t.lt`) and other Long Task metrics (`c.lt.*`) will
+ * * A log (`c.lt`), timeline (`c.t.longtask`) and other Long Task metrics (`c.lt.*`) will
  *     be added to the beacon (see Beacon Parameters details below)
  *
  * The log `c.lt` is a JSON (or JSURL) object of compressed `LongTask` data.  See
@@ -109,6 +111,7 @@
  * Page Busy is not the most efficient way of measuring what the browser is doing,
  * but since it is calculated via `setInterval()`, it is supported in all browsers.
  * The Continuity plugin currently measures Page Busy by polling every 32 milliseconds.
+ * Page Busy is disabled if Long Tasks are supported in the browser.
  *
  * Page Busy can be an indicator of how likely the user will have a good experience
  * when they interact with it. If Page Busy is 100%, the user may see the page lag
@@ -169,6 +172,9 @@
  *     * Distinct Scrolls: Scrolls that happened over 2 seconds since the last scroll
  * * Page Visibility changes
  * * Orientation changes
+ * * Pointer Down and Up, Mouse Down and Touch Start:
+ *    Timestamp of these events is used to track and calculate interaction metrics
+ *    like _First Input Delay_
  *
  * These interactions are monitored and instrumented throughout the page load.  By using
  * the event's `timeStamp`, we can detect how long it took for the physical event (e.g.
@@ -197,7 +203,7 @@
  * If {@link BOOMR.plugins.Continuity.init `monitorInteractions`} is enabled:
  *
  * * Passive event handlers will be added to monitor clicks, keys, etc.
- * * A log and many interaction metrics (`c.f.*`) will be added to the
+ * * A log and many interaction metrics (`c.i.*`, `c.ttfi`) will be added to the
  *     beacon (see Beacon Parameters details below)
  *
  * For `interaction` beacons, the following will be set:
@@ -239,6 +245,26 @@
  * This option is off by default, and can be turned on via the
  * {@link BOOMR.plugins.Continuity.init `monitorStats`} config option.
  *
+ * ### Monitoring Layout Shifts
+ *
+ * If {@link BOOMR.plugins.Continuity.init `monitorLayoutShifts`} is turned on,
+ * the Continuity plugin will measure visual instability via the
+ * [Layout Instability API](https://github.com/WICG/layout-instability), and will calculate the Cumulative
+ * Layout Shift (CLS) score.
+ *
+ * The Cumulative Layout Shift (CLS) score approximates the severity of visual layout changes by monitoring
+ * how DOM nodes shift during the user experience.  A CLS of `0` indicates a stable view where no DOM nodes shifted.  Each
+ * time an unexpected layout shifts occur, the CLS increases.  CLS is represented in decimal form, with a value of `0.1`
+ * indicating a fraction of the screen's elements were affected.  CLS values can be larger than `1.0` if the
+ * layout shifts multiple times.
+ *
+ * See [web.dev/cls](https://web.dev/cls/) for a more detailed explanation.
+ *
+ * CLS is included on the beacon as `c.cls`, and resets each beacon, so represents the CLS since the last beacon.
+ *
+ * This option is on by default, and can be disabled via the
+ * {@link BOOMR.plugins.Continuity.init `monitorLayoutShifts`} config option.
+ *
  * ## New Timers
  *
  * There are 4 new timers from the Continuity plugin that center around user
@@ -279,6 +305,8 @@
  *     * These might just be paints of white, so they're not the only signal we should use
  * * First Contentful Paint (if available)
  *     * Via [PaintTiming](https://www.w3.org/TR/paint-timing/)
+ * * Largest Contentful Paint (if available)
+ *     * Via [Largest Contentful Paint API](https://wicg.github.io/largest-contentful-paint/)
  * * [domContentLoadedEventEnd](https://msdn.microsoft.com/en-us/library/ff974719)
  *     * "The DOMContentLoaded event is fired when the initial HTML document has been
  *         completely loaded and parsed, without waiting for stylesheets, images,
@@ -302,6 +330,10 @@
  * Once the last of all of the above have happened, Visually Ready has occurred.
  *
  * Visually Ready will add `c.tti.vr` to the beacon.
+ *
+ * Visually Ready is only included on regular Page Load and Single Page App Hard navigation beacons.  It is not
+ * suitable for Single Page App Soft navigation beacons as the page has already been visually ready at the start
+ * of the soft navigation.
  *
  * #### Controlling Visually Ready via Framework Ready
  *
@@ -392,12 +424,17 @@
  * which is the higest-accuracy method available for TTI calculation: `lt` (Long Tasks),
  * `raf` (FPS), or `b` (Page Busy).
  *
+ * Time to Interaction is only included on regular Page Load and Single Page App Hard navigation beacons.  It is not
+ * suitable for Single Page App Soft navigation beacons as the page is already interactive at the start of
+ * the soft navigation.
+ *
  * #### Algorithm
  *
  * Putting these two timers together, here's how we measure Visually Ready and
  * Time to Interactive:
  *
  * 1. Determine the highest Visually Ready timestamp (VRTS):
+ *     * Largest Contentful Paint (if available)
  *     * First Contentful Paint (if available)
  *     * First Paint (if available)
  *     * `domContentLoadedEventEnd`
@@ -439,6 +476,14 @@
  * to the user if the callback is delayed.
  *
  * This time (measured in milliseconds) is added to the beacon as `c.fid`.
+ *
+ * The polyfill for FirstInputDelay calculation from previous version of this plugin
+ * has been updated to match the latest industry standards for FID. This polyfill now
+ * evaluates click, mousedown, keydown, touchstart, pointerdown followed by pointerup
+ * events as indicators for First Input Delay calculations.
+ *
+ * Note if the {@link BOOMR.plugins.EventTiming `EventTiming`} plugin is included,
+ * this measurement is deferred to the First Input Delay calculated by that plugin.
  *
  * ## Timelines
  *
@@ -651,6 +696,7 @@
  * * `c.b`: Page Busy percentage (Base-10)
  * * `c.c.r`: Rage click count (Base-10)
  * * `c.c`: Click count (Base-10)
+ * * `c.cls`: Cumulative Layout Shift score (since last beacon) (Base-10 fraction)
  * * `c.e`: Continuity Epoch timestamp (when everything started measuring) (Base-36)
  * * `c.f.d`: Frame Rate duration (how long it has been measuring) (milliseconds) (Base-10)
  * * `c.f.l`: Number of Long Frames (>= 50ms) (Base-10)
@@ -771,6 +817,11 @@
 	 */
 	var LARGE_NUMBER_WRAP = ".";
 
+	/**
+	 * Listener Options args with Passive and Capture set to true
+	 */
+	var listenerOpts = {passive: true, capture: true};
+
 	// Performance object
 	var p = BOOMR.getPerformance();
 
@@ -799,8 +850,8 @@
 	/**
 	 * Compress JSON to a string for a URL parameter in the best way possible.
 	 *
-	 * If UserTimingCompression is available (which has JSURL), use that.  The
-	 * data will start with the character `~`
+	 * If BOOMR.utils.Compression.jsUrl, or UserTimingCompression is available (which has JSURL),
+	 * use that.  The data will start with the character `~`.
 	 *
 	 * Otherwise, use JSON.stringify.  The data will start with the character `{`.
 	 *
@@ -809,10 +860,12 @@
 	 * @returns {string} Compressed data
 	 */
 	function compressJson(data) {
-		var utc = window.UserTimingCompression || BOOMR.window.UserTimingCompression;
+		var jsUrlFn = (BOOMR.utils.Compression && BOOMR.utils.Compression.jsUrl) ||
+			(window.UserTimingCompression && window.UserTimingCompression.jsUrl) ||
+			(BOOMR.window.UserTimingCompression && BOOMR.window.UserTimingCompression.jsUrl);
 
-		if (utc) {
-			return utc.jsUrl(data);
+		if (jsUrlFn) {
+			return jsUrlFn(data);
 		}
 		else if (window.JSON) {
 			return JSON.stringify(data);
@@ -845,7 +898,7 @@
 	function compressBucketLog(type, backfill, dataSet, sinceBucket, endBucket) {
 		var out = "", val = 0, i, j, dupes, valStr, nextVal, wroteSomething;
 
-		if (!dataSet || !BOOMR.utils.Compression) {
+		if (!dataSet) {
 			return "";
 		}
 
@@ -1196,6 +1249,9 @@
 		// hero images timestamp
 		var heroImagesReady = 0;
 
+		// whether or not to add Visually Ready to the next beacon
+		var addVisuallyReadyToBeacon = true;
+
 		// check for pre-Boomerang FPS log
 		if (BOOMR.fpsLog && BOOMR.fpsLog.length) {
 			// start at the first frame instead of now
@@ -1426,11 +1482,12 @@
 
 		/**
 		 * Determine Visually Ready time.  This is the last of:
-		 * 1. First Contentful Paint (if available)
-		 * 2. First Paint (if available)
-		 * 3. domContentLoadedEventEnd
-		 * 4. Hero Images are loaded (if configured)
-		 * 5. Framework Ready (if configured)
+		 * 1. Largest Contentful Paint (if available)
+		 * 2. First Contentful Paint (if available)
+		 * 3. First Paint (if available)
+		 * 4. domContentLoadedEventEnd
+		 * 5. Hero Images are loaded (if configured)
+		 * 6. Framework Ready (if configured)
 		 *
 		 * @returns {number|undefined} Timestamp, if everything is ready, or
 		 *    `undefined` if not
@@ -1447,12 +1504,17 @@
 				latestTs = impl.frameworkReady;
 			}
 
-			// use First Contentful Paint (if available) or
+			// use Largest/First Contentful Paint (if available) or
 			if (BOOMR.plugins.PaintTiming &&
 			    BOOMR.plugins.PaintTiming.is_supported() &&
 			    p &&
 			    p.timeOrigin) {
-				var fp = BOOMR.plugins.PaintTiming.getTimingFor("first-contentful-paint");
+				var fp = BOOMR.plugins.PaintTiming.getTimingFor("largest-contentful-paint");
+
+				if (!fp) {
+					fp = BOOMR.plugins.PaintTiming.getTimingFor("first-contentful-paint");
+				}
+
 				if (!fp) {
 					// or get First Paint directly from PaintTiming
 					fp = BOOMR.plugins.PaintTiming.getTimingFor("first-paint");
@@ -1604,14 +1666,19 @@
 				}
 			}
 
-			// add Visually Ready to the beacon
-			impl.addToBeacon("c.tti.vr", externalMetrics.timeToVisuallyReady());
+			if (addVisuallyReadyToBeacon) {
+				// add Visually Ready to the beacon
+				impl.addToBeacon("c.tti.vr", externalMetrics.timeToVisuallyReady());
 
-			// add Framework Ready to the beacon
-			impl.addToBeacon("c.tti.fr", externalMetrics.timeToFrameworkReady());
+				// add Framework Ready to the beacon
+				impl.addToBeacon("c.tti.fr", externalMetrics.timeToFrameworkReady());
 
-			// add Framework Ready to the beacon
-			impl.addToBeacon("c.tti.hi", externalMetrics.timeToHeroImagesReady());
+				// add Framework Ready to the beacon
+				impl.addToBeacon("c.tti.hi", externalMetrics.timeToHeroImagesReady());
+
+				// only add to the first beacon
+				addVisuallyReadyToBeacon = false;
+			}
 
 			// Calculate TTI
 			if (!data.longtask && !data.fps && !data.busy) {
@@ -1746,6 +1813,9 @@
 
 			// reset the data log
 			dataLog = [];
+
+			// only add Visually Ready to the first beacon if available
+			addVisuallyReadyToBeacon = false;
 		}
 
 		return {
@@ -1755,6 +1825,92 @@
 			increment: increment,
 			getTimeBucket: getTimeBucket,
 			getStats: getStats,
+			analyze: analyze,
+			stop: stop,
+			onBeacon: onBeacon
+		};
+	};
+
+	/**
+	 * Monitors Layout Shift events
+	 */
+	var LayoutShiftMonitor = function(w) {
+		if (!w.PerformanceObserver || !w.LayoutShift) {
+			return;
+		}
+
+		// whether or not we're enabled
+		var enabled = true;
+
+		// CumulativeLayoutShift score
+		var clsScore = 0;
+
+		// PerformanceObserver
+		var perfObserver = new w.PerformanceObserver(onLayoutShiftObserver);
+
+		try {
+			perfObserver.observe({type: "layout-shift", buffered: true});
+		}
+		catch (e) {
+			// layout-shift not supported
+			return;
+		}
+
+		function onLayoutShiftObserver(list) {
+			var entries, i;
+
+			if (!enabled) {
+				return;
+			}
+
+			entries = list.getEntries();
+			for (i = 0; i < entries.length; i++) {
+				// Only account for Layoutshift score that didnt have recent user input.
+				if (!entries[i].hadRecentInput) {
+					clsScore += entries[i].value;
+				}
+			}
+		}
+
+		/**
+		 * Record Cumulative Layout Shift score on beacon
+		 */
+		function analyze(startTime) {
+			// add data to beacon
+			impl.addToBeacon("c.cls", externalMetrics.clsScore());
+		}
+
+		function clearClsScore() {
+			clsScore = 0;
+		}
+
+		/**
+		 * Disables the monitor
+		 */
+		function stop() {
+			enabled = false;
+
+			perfObserver.disconnect();
+
+			clearClsScore();
+		}
+
+		/**
+		 * Resets on beacon
+		 */
+		function onBeacon() {
+			clearClsScore();
+		}
+
+		/**
+		 * Cumulative Layout Shift Score
+		 */
+		externalMetrics.clsScore = function() {
+			return clsScore;
+		};
+
+		return {
+			clearClsScore: clearClsScore,
 			analyze: analyze,
 			stop: stop,
 			onBeacon: onBeacon
@@ -2440,7 +2596,7 @@
 			lastScroll = now;
 
 			// determine how many pixels were scrolled
-			var curY = BOOMR.utils.scroll().y;
+			var curY = Math.ceil(BOOMR.utils.scroll().y);
 			var diffY = Math.abs(lastY - curY);
 
 			scrollPixels += diffY;
@@ -2458,8 +2614,7 @@
 				lastYLogged = curY;
 			}
 
-			// update the interaction monitor
-			i.interact("scroll", now, e);
+			// We wont consider Scroll events as triggering an interaction
 
 			// calculate percentage of document scrolled
 			intervalScrollPct += Math.round(diffY / documentHeight * 100);
@@ -2550,7 +2705,7 @@
 		};
 
 		// startup
-		BOOMR.utils.addListener(w, "scroll", onScroll, true);
+		BOOMR.utils.addListener(w, "scroll", onScroll, listenerOpts);
 
 		collectionInterval = setInterval(reportScroll, COLLECTION_INTERVAL);
 
@@ -2646,8 +2801,11 @@
 				y: newY
 			});
 
-			// update the interaction monitor
-			i.interact("click", now, e);
+			// Only count cancellable event for interactions.
+			if (e.cancelable) {
+				// update the interaction monitor
+				i.interact("click", now, e);
+			}
 		}
 
 		/**
@@ -2688,7 +2846,7 @@
 		//
 		// Startup
 		//
-		BOOMR.utils.addListener(w.document, "click", onClick, true);
+		BOOMR.utils.addListener(w.document, "click", onClick, listenerOpts);
 
 		return {
 			analyze: analyze,
@@ -2734,8 +2892,11 @@
 			// add to the log (don't track the actual keys)
 			t.log(LOG_TYPE_KEY, now);
 
-			// update the interaction monitor
-			i.interact("key", now, e);
+			// Only count cancellable event for interactions.
+			if (e.cancelable) {
+				// update the interaction monitor
+				i.interact("key", now, e);
+			}
 		}
 
 		/**
@@ -2773,7 +2934,7 @@
 		};
 
 		// start
-		BOOMR.utils.addListener(w.document, "keydown", onKeyDown, true);
+		BOOMR.utils.addListener(w.document, "keydown", onKeyDown, listenerOpts);
 
 		return {
 			analyze: analyze,
@@ -2956,7 +3117,7 @@
 		reportMouseLogInterval = setInterval(reportMouseLog, REPORT_LOG_INTERVAL);
 
 		// start
-		BOOMR.utils.addListener(w.document, "mousemove", onMouseMove, true);
+		BOOMR.utils.addListener(w.document, "mousemove", onMouseMove, listenerOpts);
 
 		return {
 			analyze: analyze,
@@ -3031,6 +3192,9 @@
 		// whether or not a SPA nav is happening
 		var isSpaNav = false;
 
+		// whether we've sent TTFI and FID already
+		var sentTimers = false;
+
 		/**
 		 * Logs an interaction
 		 *
@@ -3040,6 +3204,7 @@
 		 */
 		function interact(type, now, e) {
 			var delay = 0;
+			var hrNow = BOOMR.hrNow();
 
 			now = now || BOOMR.now();
 
@@ -3050,7 +3215,13 @@
 			interactions++;
 
 			if (!timeToFirstInteraction) {
-				timeToFirstInteraction = now;
+				if (e && e.timeStamp) {
+					// e.timeStamp is DomHighRes timestamp, so convert to epoch based.
+					timeToFirstInteraction = e.timeStamp + epoch;
+				}
+				else {
+					timeToFirstInteraction = now;
+				}
 			}
 
 			// check for interaction delay.
@@ -3062,8 +3233,8 @@
 					delay = now - e.timeStamp;
 				}
 				else {
-					// if timeStamp is a DOMHighResTimeStamp, convert BOOMR.now() to same
-					delay = (now - epoch) - e.timeStamp;
+					// if timeStamp is a DOMHighResTimeStamp, convert BOOMR.hrNow() to same
+					delay = BOOMR.hrNow() - e.timeStamp;
 				}
 
 				interactionsDelay += delay;
@@ -3177,13 +3348,32 @@
 		 * Analyzes Interactions
 		 */
 		function analyze(startTime) {
-			impl.addToBeacon("c.ttfi", externalMetrics.timeToFirstInteraction());
+			var fid;
+
 			impl.addToBeacon("c.i.dc", externalMetrics.interactionDelayed());
 			impl.addToBeacon("c.i.dt", externalMetrics.interactionDelayedTime());
 			impl.addToBeacon("c.i.a", externalMetrics.interactionAvgDelay());
 
-			if (firstInputDelay !== null) {
-				impl.addToBeacon("c.fid", externalMetrics.firstInputDelay(), true);
+			// Only send FID and TTFI Timers once
+			if (!sentTimers) {
+				// defer to EventTiming's FID if available
+				if (BOOMR.plugins.EventTiming &&
+				    BOOMR.plugins.EventTiming.is_enabled()) {
+					fid = BOOMR.plugins.EventTiming.metrics.firstInputDelay();
+				}
+
+				if (!fid && firstInputDelay !== null) {
+					fid = externalMetrics.firstInputDelay();
+				}
+
+				if (fid) {
+					impl.addToBeacon("c.fid", Math.ceil(fid), true);
+
+					impl.addToBeacon("c.ttfi", BOOMR.plugins.EventTiming.metrics.timeToFirstInteraction() ||
+					    externalMetrics.timeToFirstInteraction());
+
+					sentTimers = true;
+				}
 			}
 		}
 
@@ -3231,6 +3421,9 @@
 			}
 		};
 
+		/**
+		 * ttfi relative to nav start
+		 */
 		externalMetrics.timeToFirstInteraction = function() {
 			if (timeToFirstInteraction) {
 				// milliseconds since nav start
@@ -3262,6 +3455,130 @@
 			analyze: analyze,
 			stop: stop,
 			onBeacon: onBeacon
+		};
+	};
+
+	/**
+	 * Monitor pointerdown followed by pointerup interaction event for calculating FID
+	 */
+	var PointerDownMonitor = function(w, t, i) {
+		// we are not registering timeline events for pointerdown as these end up as click
+		// events which are already tracked for timelines.
+
+		var enabled = true;
+		var now, originalEvent;
+
+		function onPointerUp() {
+			if (!enabled) {
+				// Either stop() was called because of onBeacon event shutting things down
+				// or 'pointercancel' event resulted in stop() being called.
+				return;
+			}
+
+			// Update the interaction monitor
+			i.interact("pd", now, originalEvent);
+			now = null;
+			originalEvent = null;
+
+			BOOMR.utils.removeListener(window, "pointerup", onPointerUp);
+		}
+
+		function onPointerDown(e) {
+			// Only count cancelable event that should trigger behavior
+			// important to user
+			if (!enabled || !e.cancelable) {
+				return;
+			}
+
+			now = BOOMR.now();
+			originalEvent = e;
+
+			BOOMR.utils.addListener(window, "pointerup", onPointerUp, listenerOpts);
+		}
+
+		/**
+		 * Stop this monitor
+		 */
+		function stop() {
+			enabled = false;
+			BOOMR.utils.removeListener(window, "pointerdown", onPointerDown);
+			BOOMR.utils.removeListener(window, "pointerup", onPointerUp);
+			BOOMR.utils.removeListener(window, "pointercancel", stop);
+		}
+
+		BOOMR.utils.addListener(window, "pointerdown", onPointerDown, listenerOpts);
+		BOOMR.utils.addListener(window, "pointercancel", stop, listenerOpts);
+
+		return {
+			stop: stop
+		};
+	};
+
+	/**
+	 * Monitor mousedown Event
+	 */
+	var MouseDownMonitor = function(w, t, i) {
+		var enabled = true;
+
+		function onMouseDown(e) {
+			// Only count cancelable event that should trigger behavior
+			// important to user
+			if (!enabled || !e.cancelable) {
+				return;
+			}
+
+			var now = BOOMR.now();
+
+			// Update the interaction monitor
+			i.interact("md", now, e);
+		}
+
+		/**
+		 * Stop this monitor
+		 */
+		function stop() {
+			enabled = false;
+			BOOMR.utils.removeListener(window, "mousedown", onMouseDown);
+		}
+
+		BOOMR.utils.addListener(window, "mousedown", onMouseDown, listenerOpts);
+
+		return {
+			stop: stop
+		};
+	};
+
+	/**
+	 * Monitors TouchStart event
+	 */
+	var TouchStartMonitor = function(w, t, i) {
+		var enabled = true;
+
+		function onTouchStart(e) {
+			// Only count cancelable event that should trigger behavior
+			// important to user
+			if (!enabled || !e.cancelable) {
+				return;
+			}
+
+			var now = BOOMR.now();
+
+			// Update the interaction monitor
+			i.interact("ts", now, e);
+		}
+
+		/**
+		 * Stop this monitor
+		 */
+		function stop() {
+			enabled = false;
+			BOOMR.utils.removeListener(window, "touchstart", onTouchStart);
+		}
+
+		BOOMR.utils.addListener(window, "touchstart", onTouchStart, listenerOpts);
+
+		return {
+			stop: stop
 		};
 	};
 
@@ -3305,9 +3622,7 @@
 			t.log(LOG_TYPE_VIS, now, {
 				s: VIS_MAP[BOOMR.visibilityState()]
 			});
-
-			// update the interaction monitor
-			i.interact("vis", now, e);
+			// Visibility change doesn't explicitly trigger an "interaction"
 		});
 
 		/**
@@ -3362,9 +3677,6 @@
 					a: angle
 				});
 			}
-
-			// update the interaction monitor
-			i.interact("orn", now, e);
 		}
 
 		/**
@@ -3379,7 +3691,7 @@
 		//
 		// Setup
 		//
-		BOOMR.utils.addListener(w, "orientationchange", onOrientationChange, true);
+		BOOMR.utils.addListener(w, "orientationchange", onOrientationChange, listenerOpts);
 
 		return {
 			stop: stop
@@ -3617,6 +3929,11 @@
 		monitorStats: false,
 
 		/**
+		 * Whether to monitor Layout Shifts
+		 */
+		monitorLayoutShifts: true,
+
+		/**
 		 * Whether to monitor for interactions after onload
 		 */
 		afterOnload: false,
@@ -3733,7 +4050,7 @@
 		interactionMonitor: null,
 
 		/**
-		 * ScrollMontior
+		 * ScrollMonitor
 		 */
 		scrollMonitor: null,
 
@@ -3763,9 +4080,29 @@
 		orientationMonitor: null,
 
 		/**
+		 * TouchStartMonitor
+		 */
+		touchStartMonitor: null,
+
+		/**
+		 * MouseDownMonitor
+		 */
+		mouseDownMonitor: null,
+
+		/**
+		 * PointerDownMonitor
+		 */
+		pointerDownMonitor: null,
+
+		/**
 		 * StatsMonitor
 		 */
 		statsMonitor: null,
+
+		/**
+		* LayoutShiftMonitor
+		*/
+		layoutShiftMonitor: null,
 
 		/**
 		 * All possible monitors
@@ -3782,7 +4119,11 @@
 			"interactionMonitor",
 			"visibilityMonitor",
 			"orientationMonitor",
-			"statsMonitor"
+			"statsMonitor",
+			"layoutShiftMonitor",
+			"touchStartMonitor",
+			"mouseDownMonitor",
+			"pointerDownMonitor"
 		],
 
 		/**
@@ -3988,6 +4329,8 @@
 		 * monitor Interactions.
 		 * @param {boolean} [config.Continuity.monitorStats=true] Whether or not to
 		 * monitor Page Statistics.
+		 * @param {boolean} [config.Continuity.monitorLayoutShifts=true] Whether or not to
+		 * monitor Layout Shifts
 		 * @param {boolean} [config.Continuity.afterOnload=false] Whether or not to
 		 * monitor Long Tasks, Page Busy, Frame Rate, interactions and Page Statistics
 		 * after `onload` (up to `afterOnloadMaxLength`).
@@ -4020,7 +4363,7 @@
 				["monitorLongTasks", "monitorPageBusy", "monitorFrameRate", "monitorInteractions",
 					"monitorStats", "afterOnload", "afterOnloadMaxLength", "afterOnloadMinWait",
 					"waitAfterOnload", "ttiWaitForFrameworkReady", "ttiWaitForHeroImages",
-					"sendLog", "logMaxEntries", "sendTimeline"]);
+					"sendLog", "logMaxEntries", "sendTimeline", "monitorLayoutShifts"]);
 
 			if (impl.initialized) {
 				return this;
@@ -4081,6 +4424,9 @@
 					impl.mouseMonitor = new MouseMonitor(BOOMR.window, impl.timeline, impl.interactionMonitor);
 					impl.visibilityMonitor = new VisibilityMonitor(BOOMR.window, impl.timeline, impl.interactionMonitor);
 					impl.orientationMonitor = new OrientationMonitor(BOOMR.window, impl.timeline, impl.interactionMonitor);
+					impl.touchStartMonitor = new TouchStartMonitor(BOOMR.window, impl.timeline, impl.interactionMonitor);
+					impl.mouseDownMonitor = new MouseDownMonitor(BOOMR.window, impl.timeline, impl.interactionMonitor);
+					impl.pointerDownMonitor = new PointerDownMonitor(BOOMR.window, impl.timeline, impl.interactionMonitor);
 				}
 
 				//
@@ -4088,6 +4434,12 @@
 				//
 				if (impl.monitorStats) {
 					impl.statsMonitor = new StatsMonitor(BOOMR.window, impl.timeline, impl.interactionMonitor);
+				}
+
+				if (impl.monitorLayoutShifts &&
+					BOOMR.window.PerformanceObserver) {
+					impl.layoutShiftMonitor = new LayoutShiftMonitor(BOOMR.window);
+
 				}
 			}
 

@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.boxShadow = void 0;
-var IPropertyDescriptor_1 = require("../IPropertyDescriptor");
 var parser_1 = require("../syntax/parser");
 var length_percentage_1 = require("../types/length-percentage");
 var color_1 = require("../types/color");
@@ -9,7 +8,7 @@ var length_1 = require("../types/length");
 exports.boxShadow = {
     name: 'box-shadow',
     initialValue: 'none',
-    type: IPropertyDescriptor_1.PropertyDescriptorParsingType.LIST,
+    type: 1 /* LIST */,
     prefix: false,
     parse: function (context, tokens) {
         if (tokens.length === 1 && parser_1.isIdentWithValue(tokens[0], 'none')) {

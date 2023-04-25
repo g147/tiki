@@ -5,7 +5,7 @@ var tokenizer_1 = require("../syntax/tokenizer");
 var parser_1 = require("../syntax/parser");
 var length_1 = require("./length");
 var isLengthPercentage = function (token) {
-    return token.type === tokenizer_1.TokenType.PERCENTAGE_TOKEN || length_1.isLength(token);
+    return token.type === 16 /* PERCENTAGE_TOKEN */ || length_1.isLength(token);
 };
 exports.isLengthPercentage = isLengthPercentage;
 var parseLengthPercentageTuple = function (tokens) {
@@ -13,17 +13,17 @@ var parseLengthPercentageTuple = function (tokens) {
 };
 exports.parseLengthPercentageTuple = parseLengthPercentageTuple;
 exports.ZERO_LENGTH = {
-    type: tokenizer_1.TokenType.NUMBER_TOKEN,
+    type: 17 /* NUMBER_TOKEN */,
     number: 0,
     flags: tokenizer_1.FLAG_INTEGER
 };
 exports.FIFTY_PERCENT = {
-    type: tokenizer_1.TokenType.PERCENTAGE_TOKEN,
+    type: 16 /* PERCENTAGE_TOKEN */,
     number: 50,
     flags: tokenizer_1.FLAG_INTEGER
 };
 exports.HUNDRED_PERCENT = {
-    type: tokenizer_1.TokenType.PERCENTAGE_TOKEN,
+    type: 16 /* PERCENTAGE_TOKEN */,
     number: 100,
     flags: tokenizer_1.FLAG_INTEGER
 };
@@ -33,7 +33,7 @@ var getAbsoluteValueForTuple = function (tuple, width, height) {
 };
 exports.getAbsoluteValueForTuple = getAbsoluteValueForTuple;
 var getAbsoluteValue = function (token, parent) {
-    if (token.type === tokenizer_1.TokenType.PERCENTAGE_TOKEN) {
+    if (token.type === 16 /* PERCENTAGE_TOKEN */) {
         return (token.number / 100) * parent;
     }
     if (parser_1.isDimensionToken(token)) {

@@ -33,15 +33,21 @@
  * * `sv`: Boomerang Loader Snippet version
  * * `sm`: Boomerang Loader Snippet method
  * * `u`: The page's URL (for most beacons), or the `XMLHttpRequest` URL
+ * * `n`: The beacon number
  * * `pgu`: The page's URL (for `XMLHttpRequest` beacons)
  * * `pid`: Page ID (8 characters)
  * * `r`: Navigation referrer (from `document.location`)
  * * `vis.pre`: `1` if the page transitioned from prerender to visible
+ * * `vis.st`: Document's visibility state when beacon was sent
+ * * `vis.lh`: Timestamp when page was last hidden
+ * * `vis.lv`: Timestamp when page was last visible
  * * `xhr.pg`: The `XMLHttpRequest` page group
  * * `errors`: Error messages of errors detected in Boomerang code, separated by a newline
  * * `rt.si`: Session ID
  * * `rt.ss`: Session start timestamp
  * * `rt.sl`: Session length (number of pages), can be increased by XHR beacons as well
+ * * `ua.plt`: `navigator.platform`
+ * * `ua.vnd`: `navigator.vendor`
  */
 
 /**
@@ -71,6 +77,9 @@ if ("performance" in window &&
  * @global
  * @type {TimeStamp}
  * @desc
+ * This variable is added to the global scope (`window`) until Boomerang loads,
+ * at which point it is removed.
+ *
  * Timestamp the boomerang.js script started executing.
  *
  * This has to be global so that we don't wait for this entire
@@ -84,6 +93,8 @@ BOOMR_start = new Date().getTime();
  * @function
  * @global
  * @desc
+ * This function is added to the global scope (`window`).
+ *
  * Check the value of `document.domain` and fix it if incorrect.
  *
  * This function is run at the top of boomerang, and then whenever
@@ -351,8 +362,8 @@ BOOMR_check_doc_domain();
 
 	// visibilitychange is useful to detect if the page loaded through prerender
 	// or if the page never became visible
-	// http://www.w3.org/TR/2011/WD-page-visibility-20110602/
-	// http://www.nczonline.net/blog/2011/08/09/introduction-to-the-page-visibility-api/
+	// https://www.w3.org/TR/2011/WD-page-visibility-20110602/
+	// https://www.nczonline.net/blog/2011/08/09/introduction-to-the-page-visibility-api/
 	// https://developer.mozilla.org/en-US/docs/Web/Guide/User_experience/Using_the_Page_Visibility_API
 
 	// Set the name of the hidden property and the change event for visibility
@@ -436,6 +447,15 @@ BOOMR_check_doc_domain();
 		// handlers_attached: false,
 
 		// waiting_for_config: false,
+
+		// All Boomerang cookies will be created with SameSite=Lax by default
+		same_site_cookie: "Lax",
+
+		// All Boomerang cookies will be without Secure attribute by default
+		secure_cookie: false,
+
+		// Sometimes we would like to be able to set the SameSite=None from a Boomerang plugin
+		forced_same_site_cookie_none: false,
 
 		events: {
 			/**
@@ -1108,7 +1128,7 @@ BOOMR_check_doc_domain();
 			/**
 			 * Maximum GET URL length.
 			 * Using 2000 here as a de facto maximum URL length based on:
- 			 * http://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
+ 			 * https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
 			 *
 			 * @type {number}
 			 *
@@ -1378,6 +1398,20 @@ BOOMR_check_doc_domain();
 						c.push("expires=" + exp);
 					}
 
+					var extraAttributes = this.getSameSiteAttributeParts();
+
+					/**
+					 * 1. We check if the Secure attribute wasn't added already because SameSite=None will force adding it.
+					 * 2. We check the current protocol because if we are on HTTP and we try to create a secure cookie with
+					 *    SameSite=Strict then a cookie will be created with SameSite=Lax.
+					 */
+					if (location.protocol === "https:" && impl.secure_cookie === true && extraAttributes.indexOf("Secure") === -1) {
+						extraAttributes.push("Secure");
+					}
+
+					// add extra attributes
+					c = c.concat(extraAttributes);
+
 					/* BEGIN_DEBUG */
 					BOOMR.utils.mark("set_cookie_real");
 					/* END_DEBUG */
@@ -1479,6 +1513,73 @@ BOOMR_check_doc_domain();
 			 */
 			removeCookie: function(name) {
 				return this.setCookie(name, {}, -86400);
+			},
+
+			/**
+			 * Depending on Boomerang configuration and checks of current protocol and
+			 * compatible browsers the logic below will provide an array of cookie
+			 * attributes that are needed for a successful creation of a cookie that
+			 * contains the SameSite attribute.
+			 *
+			 * How it works:
+			 * 1. We read the Boomerang configuration key `same_site_cookie` where
+			 *    one of the following values `None`, `Lax` or `Strict` is expected.
+			 * 2. A configuration value of `same_site_cookie` will be read in case-insensitive
+			 *    manner. E.g. `Lax`, `lax` and `lAx` will produce same result - `SameSite=Lax`.
+			 * 3. If a `same_site_cookie` configuration value is not specified a cookie
+			 *    will be created with `SameSite=Lax`.
+			 * 4. If a `same_site_cookie` configuration value does't match any of
+			 *    `None`, `Lax` or `Strict` then a cookie will be created with `SameSite=Lax`.
+			 * 5. The `Secure` cookie attribute will be added when a cookie is created
+			 *    with `SameSite=None`.
+			 * 6. It's possible that a Boomerang plugin or external code may need cookies
+			 *    to be created with `SameSite=None`. In such cases we check a special
+			 *    flag `forced_same_site_cookie_none`. If the value of this flag is equal to `true`
+			 *    then the `same_site_cookie` value will be ignored and Boomerang cookies
+			 *    will be created with `SameSite=None`.
+			 *
+			 * SameSite=None - INCOMPATIBILITIES and EXCEPTIONS:
+			 *
+			 * There are known problems with older browsers where cookies created
+			 * with `SameSite=None` are `dropped` or created with `SameSite=Strict`.
+			 * Reference: https://www.chromium.org/updates/same-site/incompatible-clients
+			 *
+			 * 1. If we detect a browser that can't create safely a cookie with `SameSite=None`
+			 *    then Boomerang will create a cookie without the `SameSite` attribute.
+			 * 2. A cookie with `SameSite=None` can be created only over `HTTPS` connection.
+			 *    If current connection is `HTTP` then a cookie will be created
+			 *    without the `SameSite` attribute.
+			 *
+			 *
+			 * @returns {Array} of cookie attributes used for setting a cookie with SameSite attribute
+			 *
+			 * @memberof BOOMR.utils
+			 */
+			getSameSiteAttributeParts: function() {
+				var sameSiteMode = impl.same_site_cookie.toUpperCase();
+
+				if (impl.forced_same_site_cookie_none) {
+					sameSiteMode = "NONE";
+				}
+
+				if (sameSiteMode === "LAX") {
+					return ["SameSite=Lax"];
+				}
+
+				if (sameSiteMode === "NONE") {
+					if (location.protocol === "https:" && this.isCurrentUASameSiteNoneCompatible()) {
+						return ["SameSite=None", "Secure"];
+					}
+
+					// Fallback to browser's default
+					return [];
+				}
+
+				if (sameSiteMode === "STRICT") {
+					return ["SameSite=Strict"];
+				}
+
+				return ["SameSite=Lax"];
 			},
 
 			/**
@@ -1899,11 +2000,11 @@ BOOMR_check_doc_domain();
 			 * @param {DOMElement} el DOM element
 			 * @param {string} type Event name
 			 * @param {function} fn Callback function
-			 * @param {boolean} passive Passive mode
+			 * @param {boolean|object} passiveOrOpts Passive mode or Options object
 			 *
 			 * @memberof BOOMR.utils
 			 */
-			addListener: function(el, type, fn, passive) {
+			addListener: function(el, type, fn, passiveOrOpts) {
 				var opts = false;
 
 				/* BEGIN_DEBUG */
@@ -1911,7 +2012,10 @@ BOOMR_check_doc_domain();
 				/* END_DEBUG */
 
 				if (el.addEventListener) {
-					if (passive && BOOMR.browser.supportsPassive()) {
+					if (typeof passiveOrOpts === "object") {
+						opts = passiveOrOpts;
+					}
+					else if (typeof passiveOrOpts === "boolean" && passiveOrOpts && BOOMR.browser.supportsPassive()) {
 						opts = {
 							capture: false,
 							passive: true
@@ -2042,7 +2146,29 @@ BOOMR_check_doc_domain();
 					if (params[i]) {
 						kv = params[i].split("=");
 						if (kv.length && kv[0] === param) {
-							return kv.length > 1 ? decodeURIComponent(kv.splice(1).join("=").replace(/\+/g, " ")) : "";
+							try {
+								return kv.length > 1 ? decodeURIComponent(kv.splice(1).join("=").replace(/\+/g, " ")) : "";
+							}
+							catch (e) {
+								/**
+								 * We have different messages for the same error in different browsers but
+								 * we can look at the error name because it looks more consistent.
+								 *
+								 * Examples:
+								 *  - URIError: The URI to be encoded contains invalid character (Edge)
+								 *  - URIError: malformed URI sequence (Firefox)
+								 *  - URIError: URI malformed (Chrome)
+								 *  - URIError: URI error (Safari 13.0) / Missing on MDN but this is the result of my local tests.
+								 *
+								 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Malformed_URI#Message
+								 */
+								if (e && typeof e.name === "string" && e.name.indexOf("URIError") !== -1) {
+									// NOP
+								}
+								else {
+									throw e;
+								}
+							}
 						}
 					}
 				}
@@ -2099,9 +2225,11 @@ BOOMR_check_doc_domain();
 				if (BOOMR.utils.Compression && BOOMR.utils.Compression.jsUrl) {
 					return BOOMR.utils.Compression.jsUrl(value);
 				}
+
 				if (window.JSON) {
 					return JSON.stringify(value);
 				}
+
 				// not supported
 				BOOMR.debug("JSON is not supported");
 				return "";
@@ -2341,6 +2469,109 @@ BOOMR_check_doc_domain();
 				var hash = (hval >>> 0).toString() + string.length;
 
 				return parseInt(hash).toString(36);
+			},
+
+			/**
+			 * Wrapper of isUASameSiteNoneCompatible() that ensures that we pass correct User Agent string
+			 *
+			 * @returns {boolean} True if a browser can safely create SameSite=None cookie
+			 *
+			 * @memberof BOOMR.utils
+			 */
+			isCurrentUASameSiteNoneCompatible: function() {
+				if (w && w.navigator && w.navigator.userAgent && typeof w.navigator.userAgent === "string") {
+					return this.isUASameSiteNoneCompatible(w.navigator.userAgent);
+				}
+
+				return true;
+			},
+
+			/**
+			 * @param {string} uaString User agent string
+			 *
+			 * @returns {boolean} True if a browser can safely create SameSite=None cookie
+			 *
+			 * @memberof BOOMR.utils
+			 */
+			isUASameSiteNoneCompatible: function(uaString) {
+				/**
+				 * 1. UCBrowser lower than 12.13.2
+				 */
+				var result = uaString.match(/(UCBrowser)\/(\d+\.\d+)\.(\d+)/);
+
+				if (result) {
+					var ucMajorMinorPart = parseFloat(result[2]);
+					var ucPatch = result[3];
+
+					if (ucMajorMinorPart === 12.13) {
+						if (ucPatch <= 2) {
+							return false;
+						}
+
+						return true;
+					}
+
+					if (ucMajorMinorPart < 12.13) {
+						return false;
+					}
+
+					return true;
+				}
+
+				/**
+				 * 2. Chrome and Chromium version between 51 and 66
+				 *
+				 * This the regex covers both because a Chromium AU contains "Chromium/65.0.3325.181 Chrome/65.0.3325.181"
+				 */
+				result = uaString.match(/(Chrome)\/(\d+)\.(\d+)\.(\d+)\.(\d+)/);
+
+				if (result) {
+					var chromeMajor = result[2];
+					if (chromeMajor >= 51 && chromeMajor <= 66) {
+						return false;
+					}
+
+					return true;
+				}
+
+				/**
+				 * 3. Mac OS 10.14.* check
+				 */
+				result = uaString.match(/(Macintosh;.*Mac OS X 10_14[_\d]*.*) AppleWebKit\//);
+
+				if (result) {
+					// 3.2 Safari check
+					result = uaString.match(/Version\/.* Safari\//);
+
+					if (result) {
+						// 3.2.1 Not Chrome based check
+						result = uaString.match(/Chrom(?:e|ium)/);
+
+						if (result === null) {
+							return false;
+						}
+					}
+
+					// 3.3 Mac OS embeded browser
+					result = uaString.match(/^Mozilla\/\d+(?:\.\d+)* \(Macintosh;.*Mac OS X \d+(?:_\d+)*\) AppleWebKit\/\d+(?:\.\d+)* \(KHTML, like Gecko\)$/);
+
+					if (result) {
+						return false;
+					}
+
+					return true;
+				}
+
+				/**
+				 * 4. iOS and iPad OS 12 for all browsers
+				 */
+				result = uaString.match(/(iP.+; CPU .*OS 12(?:_\d+)*.*)/);
+
+				if (result) {
+					return false;
+				}
+
+				return true;
 			}
 
 			/* BEGIN_DEBUG */
@@ -2470,6 +2701,8 @@ BOOMR_check_doc_domain();
 		 * whether it should re-measure the user's bandwidth or just use the
 		 * value stored in the cookie. You may use IPv4, IPv6 or anything else
 		 * that you think can be used to identify the user's network connection.
+		 * @param {string} [config.same_site_cookie] Used for creating cookies with `SameSite` with one of the following values: `None`, `Lax` or `Strict`.
+		 * @param {boolean} [config.secure_cookie] When `true` all cookies will be created with `Secure` flag.
 		 * @param {function} [config.log] Logger to use. Set to `null` to disable logging.
 		 * @param {function} [<plugins>] Each plugin has its own section
 		 *
@@ -2490,7 +2723,9 @@ BOOMR_check_doc_domain();
 				    "beacon_type",
 				    "site_domain",
 				    "strip_query_string",
-				    "user_ip"
+				    "user_ip",
+				    "same_site_cookie",
+				    "secure_cookie"
 			    ];
 
 			/* BEGIN_DEBUG */
@@ -2981,6 +3216,18 @@ BOOMR_check_doc_domain();
 		},
 
 		/**
+		 * Allows us to force SameSite=None from a Boomerang plugin or a third party code.
+		 *
+		 * When this function is called then Boomerang won't honor "same_site_cookie"
+		 * configuration key and won't attempt to return the default value of SameSite=Lax .
+		 *
+		 * @memberof BOOMR
+		 */
+		forceSameSiteCookieNone: function() {
+			impl.forced_same_site_cookie_none = true;
+		},
+
+		/**
 		 * Get high resolution delta timestamp from time origin
 		 *
 		 * This function needs to approximate the time since the performance timeOrigin
@@ -3172,7 +3419,7 @@ BOOMR_check_doc_domain();
 
 					if (e_name === "page_unload") {
 						// pagehide is for iOS devices
-						// see http://www.webkit.org/blog/516/webkit-page-cache-ii-the-unload-event/
+						// see https://www.webkit.org/blog/516/webkit-page-cache-ii-the-unload-event/
 						if (w.onpagehide || w.onpagehide === null) {
 							BOOMR.utils.addListener(w, "pagehide", unload_handler);
 						}
@@ -3739,7 +3986,7 @@ BOOMR_check_doc_domain();
 		 * @memberof BOOMR
 		 */
 		real_sendBeacon: function() {
-			var k, form, url, errors = [], params = [], paramsJoined, varsSent = {}, _if;
+			var k, form, url, errors = [], params = [], paramsJoined, varsSent = {};
 
 			if (!impl.beaconQueued) {
 				return false;
@@ -3763,6 +4010,10 @@ BOOMR_check_doc_domain();
 					}
 					if (!this.plugins[k].is_complete(impl.vars)) {
 						BOOMR.debug("Plugin " + k + " is not complete, deferring beacon send");
+						// if an Early beacon is blocked, then we'll cancel it.
+						// By removing the `early` param, the beacon params will be merged
+						// with the following load beacon.
+						delete impl.vars.early;
 						return false;
 					}
 				}
@@ -3816,7 +4067,14 @@ BOOMR_check_doc_domain();
 			if (BOOMR.session.enabled) {
 				impl.vars["rt.si"] = BOOMR.session.ID + "-" + Math.round(BOOMR.session.start / 1000).toString(36);
 				impl.vars["rt.ss"] = BOOMR.session.start;
-				impl.vars["rt.sl"] = BOOMR.session.length;
+
+				if (typeof impl.vars.early === "undefined") {
+					// make sure Session Length is always at least 1 for non-Early beacons
+					impl.vars["rt.sl"] = BOOMR.session.length >= 1 ? BOOMR.session.length : 1;
+				}
+				else {
+					impl.vars["rt.sl"] = BOOMR.session.length;
+				}
 			}
 			else {
 				BOOMR.removeVar("rt.si", "rt.ss", "rt.sl");
@@ -3843,8 +4101,7 @@ BOOMR_check_doc_domain();
 			impl.vars.n = ++this.beaconsSent;
 
 			if (w !== window) {
-				_if = "if";  // work around uglifyJS minification that breaks in IE8 and quirks mode
-				impl.vars[_if] = "";
+				impl.vars["if"] = "";
 			}
 
 			for (k in impl.errors) {
@@ -3919,15 +4176,6 @@ BOOMR_check_doc_domain();
 			/* END_DEBUG */
 
 			return true;
-		},
-
-		/**
-		 * Determines whether or not a Page Load beacon has been sent.
-		 *
-		 * @returns {boolean} True if a Page Load beacon has been sent.
-		 */
-		hasSentPageLoadBeacon: function() {
-			return impl.hasSentPageLoadBeacon;
 		},
 
 		/**
@@ -4232,6 +4480,9 @@ BOOMR_check_doc_domain();
 	 * @type {TimeStamp}
 	 * @name BOOMR_lstart
 	 * @desc
+	 * This variable is added to the global scope (`window`) until Boomerang loads,
+	 * at which point it is removed.
+	 *
 	 * Time the loader script started fetching boomerang.js (if the asynchronous
 	 * loader snippet is used).
 	 */
@@ -4251,6 +4502,8 @@ BOOMR_check_doc_domain();
 	}
 
 	/**
+	 * This variable is added to the global scope (`window`).
+	 *
 	 * Time the `window.onload` event fired (if using the asynchronous loader snippet).
 	 *
 	 * This timestamp is logged in the case boomerang.js loads after the onload event

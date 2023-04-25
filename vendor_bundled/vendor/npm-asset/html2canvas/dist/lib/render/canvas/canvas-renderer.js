@@ -54,9 +54,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CanvasRenderer = void 0;
 var stacking_context_1 = require("../stacking-context");
 var color_1 = require("../../css/types/color");
-var border_style_1 = require("../../css/property-descriptors/border-style");
 var path_1 = require("../path");
-var background_clip_1 = require("../../css/property-descriptors/background-clip");
 var bound_curves_1 = require("../bound-curves");
 var bezier_curve_1 = require("../bezier-curve");
 var vector_1 = require("../vector");
@@ -65,7 +63,6 @@ var border_1 = require("../border");
 var background_1 = require("../background");
 var parser_1 = require("../../css/syntax/parser");
 var text_1 = require("../../css/layout/text");
-var css_line_break_1 = require("css-line-break");
 var image_element_container_1 = require("../../dom/replaced-elements/image-element-container");
 var box_sizing_1 = require("../box-sizing");
 var canvas_element_container_1 = require("../../dom/replaced-elements/canvas-element-container");
@@ -76,14 +73,11 @@ var gradient_1 = require("../../css/types/functions/gradient");
 var length_percentage_1 = require("../../css/types/length-percentage");
 var font_metrics_1 = require("../font-metrics");
 var bounds_1 = require("../../css/layout/bounds");
-var list_style_type_1 = require("../../css/property-descriptors/list-style-type");
 var line_height_1 = require("../../css/property-descriptors/line-height");
 var input_element_container_1 = require("../../dom/replaced-elements/input-element-container");
-var text_align_1 = require("../../css/property-descriptors/text-align");
 var textarea_element_container_1 = require("../../dom/elements/textarea-element-container");
 var select_element_container_1 = require("../../dom/elements/select-element-container");
 var iframe_element_container_1 = require("../../dom/replaced-elements/iframe-element-container");
-var paint_order_1 = require("../../css/property-descriptors/paint-order");
 var renderer_1 = require("../renderer");
 var MASK_OFFSET = 10000;
 var CanvasRenderer = /** @class */ (function (_super) {
@@ -107,12 +101,12 @@ var CanvasRenderer = /** @class */ (function (_super) {
         _this.context.logger.debug("Canvas renderer initialized (" + options.width + "x" + options.height + ") with scale " + options.scale);
         return _this;
     }
-    CanvasRenderer.prototype.applyEffects = function (effects, target) {
+    CanvasRenderer.prototype.applyEffects = function (effects) {
         var _this = this;
         while (this._activeEffects.length) {
             this.popEffect();
         }
-        effects.filter(function (effect) { return bitwise_1.contains(effect.target, target); }).forEach(function (effect) { return _this.applyEffect(effect); });
+        effects.forEach(function (effect) { return _this.applyEffect(effect); });
     };
     CanvasRenderer.prototype.applyEffect = function (effect) {
         this.ctx.save();
@@ -156,6 +150,9 @@ var CanvasRenderer = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        if (bitwise_1.contains(paint.container.flags, 16 /* DEBUG_RENDER */)) {
+                            debugger;
+                        }
                         if (!paint.container.styles.isVisible()) return [3 /*break*/, 3];
                         return [4 /*yield*/, this.renderNodeBackgroundAndBorders(paint)];
                     case 1:
@@ -175,7 +172,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
             this.ctx.fillText(text.text, text.bounds.left, text.bounds.top + baseline);
         }
         else {
-            var letters = css_line_break_1.toCodePoints(text.text).map(function (i) { return css_line_break_1.fromCodePoint(i); });
+            var letters = text_1.segmentGraphemes(text.text);
             letters.reduce(function (left, letter) {
                 _this.ctx.fillText(letter, left, text.bounds.top + baseline);
                 return left + _this.ctx.measureText(letter).width;
@@ -186,7 +183,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
         var fontVariant = styles.fontVariant
             .filter(function (variant) { return variant === 'normal' || variant === 'small-caps'; })
             .join('');
-        var fontFamily = styles.fontFamily.join(', ');
+        var fontFamily = fixIOSSystemFonts(styles.fontFamily).join(', ');
         var fontSize = parser_1.isDimensionToken(styles.fontSize)
             ? "" + styles.fontSize.number + styles.fontSize.unit
             : styles.fontSize.number + "px";
@@ -203,13 +200,15 @@ var CanvasRenderer = /** @class */ (function (_super) {
             return __generator(this, function (_c) {
                 _a = this.createFontStyle(styles), font = _a[0], fontFamily = _a[1], fontSize = _a[2];
                 this.ctx.font = font;
+                this.ctx.direction = styles.direction === 1 /* RTL */ ? 'rtl' : 'ltr';
+                this.ctx.textAlign = 'left';
                 this.ctx.textBaseline = 'alphabetic';
                 _b = this.fontMetrics.getMetrics(fontFamily, fontSize), baseline = _b.baseline, middle = _b.middle;
                 paintOrder = styles.paintOrder;
                 text.textBounds.forEach(function (text) {
                     paintOrder.forEach(function (paintOrderLayer) {
                         switch (paintOrderLayer) {
-                            case paint_order_1.PAINT_ORDER_LAYER.FILL:
+                            case 0 /* FILL */:
                                 _this.ctx.fillStyle = color_1.asString(styles.color);
                                 _this.renderTextWithLetterSpacing(text, styles.letterSpacing, baseline);
                                 var textShadows = styles.textShadow;
@@ -250,7 +249,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
                                     });
                                 }
                                 break;
-                            case paint_order_1.PAINT_ORDER_LAYER.STROKE:
+                            case 1 /* STROKE */:
                                 if (styles.webkitTextStrokeWidth && text.text.trim().length) {
                                     _this.ctx.strokeStyle = color_1.asString(styles.webkitTextStrokeColor);
                                     _this.ctx.lineWidth = styles.webkitTextStrokeWidth;
@@ -286,7 +285,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        this.applyEffects(paint.effects, 4 /* CONTENT */);
+                        this.applyEffects(paint.getEffects(4 /* CONTENT */));
                         container = paint.container;
                         curves = paint.curves;
                         styles = container.styles;
@@ -391,10 +390,10 @@ var CanvasRenderer = /** @class */ (function (_super) {
                             bounds = box_sizing_1.contentBox(container);
                             x = 0;
                             switch (container.styles.textAlign) {
-                                case text_align_1.TEXT_ALIGN.CENTER:
+                                case 1 /* CENTER */:
                                     x += bounds.width / 2;
                                     break;
-                                case text_align_1.TEXT_ALIGN.RIGHT:
+                                case 2 /* RIGHT */:
                                     x += bounds.width;
                                     break;
                             }
@@ -415,7 +414,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
                         if (!bitwise_1.contains(container.styles.display, 2048 /* LIST_ITEM */)) return [3 /*break*/, 20];
                         if (!(container.styles.listStyleImage !== null)) return [3 /*break*/, 19];
                         img = container.styles.listStyleImage;
-                        if (!(img.type === image_1.CSSImageType.URL)) return [3 /*break*/, 18];
+                        if (!(img.type === 0 /* URL */)) return [3 /*break*/, 18];
                         image = void 0;
                         url = img.url;
                         _c.label = 15;
@@ -432,7 +431,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
                         return [3 /*break*/, 18];
                     case 18: return [3 /*break*/, 20];
                     case 19:
-                        if (paint.listValue && container.styles.listStyleType !== list_style_type_1.LIST_STYLE_TYPE.NONE) {
+                        if (paint.listValue && container.styles.listStyleType !== -1 /* NONE */) {
                             fontFamily = this.createFontStyle(styles)[0];
                             this.ctx.font = fontFamily;
                             this.ctx.fillStyle = color_1.asString(styles.color);
@@ -454,10 +453,13 @@ var CanvasRenderer = /** @class */ (function (_super) {
             var _i, _a, child, _b, _c, child, _d, _e, child, _f, _g, child, _h, _j, child, _k, _l, child, _m, _o, child;
             return __generator(this, function (_p) {
                 switch (_p.label) {
-                    case 0: 
-                    // https://www.w3.org/TR/css-position-3/#painting-order
-                    // 1. the background and borders of the element forming the stacking context.
-                    return [4 /*yield*/, this.renderNodeBackgroundAndBorders(stack.element)];
+                    case 0:
+                        if (bitwise_1.contains(stack.element.container.flags, 16 /* DEBUG_RENDER */)) {
+                            debugger;
+                        }
+                        // https://www.w3.org/TR/css-position-3/#painting-order
+                        // 1. the background and borders of the element forming the stacking context.
+                        return [4 /*yield*/, this.renderNodeBackgroundAndBorders(stack.element)];
                     case 1:
                         // https://www.w3.org/TR/css-position-3/#painting-order
                         // 1. the background and borders of the element forming the stacking context.
@@ -624,7 +626,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
                             return __generator(this, function (_h) {
                                 switch (_h.label) {
                                     case 0:
-                                        if (!(backgroundImage.type === image_1.CSSImageType.URL)) return [3 /*break*/, 5];
+                                        if (!(backgroundImage.type === 0 /* URL */)) return [3 /*break*/, 5];
                                         image = void 0;
                                         url = backgroundImage.url;
                                         _h.label = 1;
@@ -768,7 +770,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        this.applyEffects(paint.effects, 2 /* BACKGROUND_BORDERS */);
+                        this.applyEffects(paint.getEffects(2 /* BACKGROUND_BORDERS */));
                         styles = paint.container.styles;
                         hasBackground = !color_1.isTransparent(styles.backgroundColor) || styles.backgroundImage.length;
                         borders = [
@@ -824,20 +826,20 @@ var CanvasRenderer = /** @class */ (function (_super) {
                     case 3:
                         if (!(_i < borders_1.length)) return [3 /*break*/, 13];
                         border = borders_1[_i];
-                        if (!(border.style !== border_style_1.BORDER_STYLE.NONE && !color_1.isTransparent(border.color) && border.width > 0)) return [3 /*break*/, 11];
-                        if (!(border.style === border_style_1.BORDER_STYLE.DASHED)) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this.renderDashedDottedBorder(border.color, border.width, side, paint.curves, border_style_1.BORDER_STYLE.DASHED)];
+                        if (!(border.style !== 0 /* NONE */ && !color_1.isTransparent(border.color) && border.width > 0)) return [3 /*break*/, 11];
+                        if (!(border.style === 2 /* DASHED */)) return [3 /*break*/, 5];
+                        return [4 /*yield*/, this.renderDashedDottedBorder(border.color, border.width, side, paint.curves, 2 /* DASHED */)];
                     case 4:
                         _a.sent();
                         return [3 /*break*/, 11];
                     case 5:
-                        if (!(border.style === border_style_1.BORDER_STYLE.DOTTED)) return [3 /*break*/, 7];
-                        return [4 /*yield*/, this.renderDashedDottedBorder(border.color, border.width, side, paint.curves, border_style_1.BORDER_STYLE.DOTTED)];
+                        if (!(border.style === 3 /* DOTTED */)) return [3 /*break*/, 7];
+                        return [4 /*yield*/, this.renderDashedDottedBorder(border.color, border.width, side, paint.curves, 3 /* DOTTED */)];
                     case 6:
                         _a.sent();
                         return [3 /*break*/, 11];
                     case 7:
-                        if (!(border.style === border_style_1.BORDER_STYLE.DOUBLE)) return [3 /*break*/, 9];
+                        if (!(border.style === 4 /* DOUBLE */)) return [3 /*break*/, 9];
                         return [4 /*yield*/, this.renderDoubleBorder(border.color, border.width, side, paint.curves)];
                     case 8:
                         _a.sent();
@@ -864,7 +866,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
                 this.ctx.save();
                 strokePaths = border_1.parsePathForBorderStroke(curvePoints, side);
                 boxPaths = border_1.parsePathForBorder(curvePoints, side);
-                if (style === border_style_1.BORDER_STYLE.DASHED) {
+                if (style === 2 /* DASHED */) {
                     this.path(boxPaths);
                     this.ctx.clip();
                 }
@@ -891,7 +893,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
                     length = Math.abs(startY - endY);
                 }
                 this.ctx.beginPath();
-                if (style === border_style_1.BORDER_STYLE.DOTTED) {
+                if (style === 3 /* DOTTED */) {
                     this.formatPath(strokePaths);
                 }
                 else {
@@ -899,7 +901,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
                 }
                 dashLength = width < 3 ? width * 3 : width * 2;
                 spaceLength = width < 3 ? width * 2 : width;
-                if (style === border_style_1.BORDER_STYLE.DOTTED) {
+                if (style === 3 /* DOTTED */) {
                     dashLength = width;
                     spaceLength = width;
                 }
@@ -922,14 +924,14 @@ var CanvasRenderer = /** @class */ (function (_super) {
                             : maxSpace;
                 }
                 if (useLineDash) {
-                    if (style === border_style_1.BORDER_STYLE.DOTTED) {
+                    if (style === 3 /* DOTTED */) {
                         this.ctx.setLineDash([0, dashLength + spaceLength]);
                     }
                     else {
                         this.ctx.setLineDash([dashLength, spaceLength]);
                     }
                 }
-                if (style === border_style_1.BORDER_STYLE.DOTTED) {
+                if (style === 3 /* DOTTED */) {
                     this.ctx.lineCap = 'round';
                     this.ctx.lineWidth = width;
                 }
@@ -940,7 +942,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
                 this.ctx.stroke();
                 this.ctx.setLineDash([]);
                 // dashed round edge gap
-                if (style === border_style_1.BORDER_STYLE.DASHED) {
+                if (style === 2 /* DASHED */) {
                     if (bezier_curve_1.isBezierCurve(boxPaths[0])) {
                         path1 = boxPaths[3];
                         path2 = boxPaths[0];
@@ -975,7 +977,7 @@ var CanvasRenderer = /** @class */ (function (_super) {
                         return [4 /*yield*/, this.renderStack(stack)];
                     case 1:
                         _a.sent();
-                        this.applyEffects([], 2 /* BACKGROUND_BORDERS */);
+                        this.applyEffects([]);
                         return [2 /*return*/, this.canvas];
                 }
             });
@@ -998,24 +1000,31 @@ var isTextInputElement = function (container) {
 };
 var calculateBackgroundCurvedPaintingArea = function (clip, curves) {
     switch (clip) {
-        case background_clip_1.BACKGROUND_CLIP.BORDER_BOX:
+        case 0 /* BORDER_BOX */:
             return bound_curves_1.calculateBorderBoxPath(curves);
-        case background_clip_1.BACKGROUND_CLIP.CONTENT_BOX:
+        case 2 /* CONTENT_BOX */:
             return bound_curves_1.calculateContentBoxPath(curves);
-        case background_clip_1.BACKGROUND_CLIP.PADDING_BOX:
+        case 1 /* PADDING_BOX */:
         default:
             return bound_curves_1.calculatePaddingBoxPath(curves);
     }
 };
 var canvasTextAlign = function (textAlign) {
     switch (textAlign) {
-        case text_align_1.TEXT_ALIGN.CENTER:
+        case 1 /* CENTER */:
             return 'center';
-        case text_align_1.TEXT_ALIGN.RIGHT:
+        case 2 /* RIGHT */:
             return 'right';
-        case text_align_1.TEXT_ALIGN.LEFT:
+        case 0 /* LEFT */:
         default:
             return 'left';
     }
+};
+// see https://github.com/niklasvh/html2canvas/pull/2645
+var iOSBrokenFonts = ['-apple-system', 'system-ui'];
+var fixIOSSystemFonts = function (fontFamilies) {
+    return /iPhone OS 15_(0|1)/.test(window.navigator.userAgent)
+        ? fontFamilies.filter(function (fontFamily) { return iOSBrokenFonts.indexOf(fontFamily) === -1; })
+        : fontFamilies;
 };
 //# sourceMappingURL=canvas-renderer.js.map

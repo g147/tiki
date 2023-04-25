@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parseTextBounds = exports.TextBounds = void 0;
-var overflow_wrap_1 = require("../property-descriptors/overflow-wrap");
+exports.segmentGraphemes = exports.parseTextBounds = exports.TextBounds = void 0;
 var css_line_break_1 = require("css-line-break");
+var text_segmentation_1 = require("text-segmentation");
 var bounds_1 = require("./bounds");
 var features_1 = require("../../core/features");
 var TextBounds = /** @class */ (function () {
@@ -20,11 +20,17 @@ var parseTextBounds = function (context, value, styles, node) {
     textList.forEach(function (text) {
         if (styles.textDecorationLine.length || text.trim().length > 0) {
             if (features_1.FEATURES.SUPPORT_RANGE_BOUNDS) {
-                if (!features_1.FEATURES.SUPPORT_WORD_BREAKING) {
-                    textBounds.push(new TextBounds(text, bounds_1.Bounds.fromDOMRectList(context, createRange(node, offset, text.length).getClientRects())));
+                var clientRects = createRange(node, offset, text.length).getClientRects();
+                if (clientRects.length > 1) {
+                    var subSegments = exports.segmentGraphemes(text);
+                    var subOffset_1 = 0;
+                    subSegments.forEach(function (subSegment) {
+                        textBounds.push(new TextBounds(subSegment, bounds_1.Bounds.fromDOMRectList(context, createRange(node, subOffset_1 + offset, subSegment.length).getClientRects())));
+                        subOffset_1 += subSegment.length;
+                    });
                 }
                 else {
-                    textBounds.push(new TextBounds(text, getRangeBounds(context, node, offset, text.length)));
+                    textBounds.push(new TextBounds(text, bounds_1.Bounds.fromDOMRectList(context, clientRects)));
                 }
             }
             else {
@@ -68,18 +74,36 @@ var createRange = function (node, offset, length) {
     range.setEnd(node, offset + length);
     return range;
 };
-var getRangeBounds = function (context, node, offset, length) {
-    return bounds_1.Bounds.fromClientRect(context, createRange(node, offset, length).getBoundingClientRect());
+var segmentGraphemes = function (value) {
+    if (features_1.FEATURES.SUPPORT_NATIVE_TEXT_SEGMENTATION) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        var segmenter = new Intl.Segmenter(void 0, { granularity: 'grapheme' });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return Array.from(segmenter.segment(value)).map(function (segment) { return segment.segment; });
+    }
+    return text_segmentation_1.splitGraphemes(value);
+};
+exports.segmentGraphemes = segmentGraphemes;
+var segmentWords = function (value, styles) {
+    if (features_1.FEATURES.SUPPORT_NATIVE_TEXT_SEGMENTATION) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        var segmenter = new Intl.Segmenter(void 0, {
+            granularity: 'word'
+        });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return Array.from(segmenter.segment(value)).map(function (segment) { return segment.segment; });
+    }
+    return breakWords(value, styles);
 };
 var breakText = function (value, styles) {
-    return styles.letterSpacing !== 0 ? css_line_break_1.toCodePoints(value).map(function (i) { return css_line_break_1.fromCodePoint(i); }) : breakWords(value, styles);
+    return styles.letterSpacing !== 0 ? exports.segmentGraphemes(value) : segmentWords(value, styles);
 };
 // https://drafts.csswg.org/css-text/#word-separator
 var wordSeparators = [0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091];
 var breakWords = function (str, styles) {
     var breaker = css_line_break_1.LineBreaker(str, {
         lineBreak: styles.lineBreak,
-        wordBreak: styles.overflowWrap === overflow_wrap_1.OVERFLOW_WRAP.BREAK_WORD ? 'break-word' : styles.wordBreak
+        wordBreak: styles.overflowWrap === "break-word" /* BREAK_WORD */ ? 'break-word' : styles.wordBreak
     });
     var words = [];
     var bk;

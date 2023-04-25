@@ -12,7 +12,7 @@ var dimension = function (number, unit) { return ({
     flags: tokenizer_1.FLAG_INTEGER,
     number: number,
     unit: unit,
-    type: tokenizer_1.TokenType.DIMENSION_TOKEN
+    type: 15 /* DIMENSION_TOKEN */
 }); };
 describe('property-descriptors', function () {
     describe('text-shadow', function () {

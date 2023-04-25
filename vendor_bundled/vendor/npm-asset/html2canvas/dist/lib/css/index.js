@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CSSParsedCounterDeclaration = exports.CSSParsedPseudoDeclaration = exports.CSSParsedDeclaration = void 0;
-var IPropertyDescriptor_1 = require("./IPropertyDescriptor");
 var background_clip_1 = require("./property-descriptors/background-clip");
 var background_color_1 = require("./property-descriptors/background-color");
 var background_image_1 = require("./property-descriptors/background-image");
@@ -14,6 +13,7 @@ var border_radius_1 = require("./property-descriptors/border-radius");
 var border_style_1 = require("./property-descriptors/border-style");
 var border_width_1 = require("./property-descriptors/border-width");
 var color_1 = require("./property-descriptors/color");
+var direction_1 = require("./property-descriptors/direction");
 var display_1 = require("./property-descriptors/display");
 var float_1 = require("./property-descriptors/float");
 var letter_spacing_1 = require("./property-descriptors/letter-spacing");
@@ -40,6 +40,7 @@ var tokenizer_1 = require("./syntax/tokenizer");
 var color_2 = require("./types/color");
 var angle_1 = require("./types/angle");
 var image_1 = require("./types/image");
+var time_1 = require("./types/time");
 var opacity_1 = require("./property-descriptors/opacity");
 var text_decoration_color_1 = require("./property-descriptors/text-decoration-color");
 var text_decoration_line_1 = require("./property-descriptors/text-decoration-line");
@@ -54,6 +55,7 @@ var bitwise_1 = require("../core/bitwise");
 var content_1 = require("./property-descriptors/content");
 var counter_increment_1 = require("./property-descriptors/counter-increment");
 var counter_reset_1 = require("./property-descriptors/counter-reset");
+var duration_1 = require("./property-descriptors/duration");
 var quotes_1 = require("./property-descriptors/quotes");
 var box_shadow_1 = require("./property-descriptors/box-shadow");
 var paint_order_1 = require("./property-descriptors/paint-order");
@@ -62,6 +64,7 @@ var webkit_text_stroke_width_1 = require("./property-descriptors/webkit-text-str
 var CSSParsedDeclaration = /** @class */ (function () {
     function CSSParsedDeclaration(context, declaration) {
         var _a, _b;
+        this.animationDuration = parse(context, duration_1.duration, declaration.animationDuration);
         this.backgroundClip = parse(context, background_clip_1.backgroundClip, declaration.backgroundClip);
         this.backgroundColor = parse(context, background_color_1.backgroundColor, declaration.backgroundColor);
         this.backgroundImage = parse(context, background_image_1.backgroundImage, declaration.backgroundImage);
@@ -87,6 +90,7 @@ var CSSParsedDeclaration = /** @class */ (function () {
         this.borderLeftWidth = parse(context, border_width_1.borderLeftWidth, declaration.borderLeftWidth);
         this.boxShadow = parse(context, box_shadow_1.boxShadow, declaration.boxShadow);
         this.color = parse(context, color_1.color, declaration.color);
+        this.direction = parse(context, direction_1.direction, declaration.direction);
         this.display = parse(context, display_1.display, declaration.display);
         this.float = parse(context, float_1.float, declaration.cssFloat);
         this.fontFamily = parse(context, font_family_1.fontFamily, declaration.fontFamily);
@@ -129,7 +133,7 @@ var CSSParsedDeclaration = /** @class */ (function () {
         this.zIndex = parse(context, z_index_1.zIndex, declaration.zIndex);
     }
     CSSParsedDeclaration.prototype.isVisible = function () {
-        return this.display > 0 && this.opacity > 0 && this.visibility === visibility_1.VISIBILITY.VISIBLE;
+        return this.display > 0 && this.opacity > 0 && this.visibility === 0 /* VISIBLE */;
     };
     CSSParsedDeclaration.prototype.isTransparent = function () {
         return color_2.isTransparent(this.backgroundColor);
@@ -138,13 +142,13 @@ var CSSParsedDeclaration = /** @class */ (function () {
         return this.transform !== null;
     };
     CSSParsedDeclaration.prototype.isPositioned = function () {
-        return this.position !== position_1.POSITION.STATIC;
+        return this.position !== 0 /* STATIC */;
     };
     CSSParsedDeclaration.prototype.isPositionedWithZIndex = function () {
         return this.isPositioned() && !this.zIndex.auto;
     };
     CSSParsedDeclaration.prototype.isFloating = function () {
-        return this.float !== float_1.FLOAT.NONE;
+        return this.float !== 0 /* NONE */;
     };
     CSSParsedDeclaration.prototype.isInlineLevel = function () {
         return (bitwise_1.contains(this.display, 4 /* INLINE */) ||
@@ -180,16 +184,16 @@ var parse = function (context, descriptor, style) {
     tokenizer.write(value);
     var parser = new parser_1.Parser(tokenizer.read());
     switch (descriptor.type) {
-        case IPropertyDescriptor_1.PropertyDescriptorParsingType.IDENT_VALUE:
+        case 2 /* IDENT_VALUE */:
             var token = parser.parseComponentValue();
             return descriptor.parse(context, parser_1.isIdentToken(token) ? token.value : descriptor.initialValue);
-        case IPropertyDescriptor_1.PropertyDescriptorParsingType.VALUE:
+        case 0 /* VALUE */:
             return descriptor.parse(context, parser.parseComponentValue());
-        case IPropertyDescriptor_1.PropertyDescriptorParsingType.LIST:
+        case 1 /* LIST */:
             return descriptor.parse(context, parser.parseComponentValues());
-        case IPropertyDescriptor_1.PropertyDescriptorParsingType.TOKEN_VALUE:
+        case 4 /* TOKEN_VALUE */:
             return parser.parseComponentValue();
-        case IPropertyDescriptor_1.PropertyDescriptorParsingType.TYPE_VALUE:
+        case 3 /* TYPE_VALUE */:
             switch (descriptor.format) {
                 case 'angle':
                     return angle_1.angle.parse(context, parser.parseComponentValue());
@@ -203,6 +207,8 @@ var parse = function (context, descriptor, style) {
                 case 'length-percentage':
                     var value_1 = parser.parseComponentValue();
                     return length_percentage_1.isLengthPercentage(value_1) ? value_1 : length_percentage_1.ZERO_LENGTH;
+                case 'time':
+                    return time_1.time.parse(context, parser.parseComponentValue());
             }
             break;
     }

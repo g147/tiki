@@ -1,7 +1,7 @@
 /*!
-FullCalendar v5.7.0
+FullCalendar v5.11.2
 Docs & License: https://fullcalendar.io/
-(c) 2021 Adam Shaw
+(c) 2022 Adam Shaw
 */
 import moment from 'moment';
 import { createPlugin, CalendarApi } from '@fullcalendar/common';

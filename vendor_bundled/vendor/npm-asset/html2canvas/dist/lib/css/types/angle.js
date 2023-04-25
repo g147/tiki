@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deg = exports.parseNamedSide = exports.isAngle = exports.angle = void 0;
 var parser_1 = require("../syntax/parser");
-var tokenizer_1 = require("../syntax/tokenizer");
 var length_percentage_1 = require("./length-percentage");
 var DEG = 'deg';
 var GRAD = 'grad';
@@ -11,7 +10,7 @@ var TURN = 'turn';
 exports.angle = {
     name: 'angle',
     parse: function (_context, value) {
-        if (value.type === tokenizer_1.TokenType.DIMENSION_TOKEN) {
+        if (value.type === 15 /* DIMENSION_TOKEN */) {
             switch (value.unit) {
                 case DEG:
                     return (Math.PI * value.number) / 180;
@@ -27,7 +26,7 @@ exports.angle = {
     }
 };
 var isAngle = function (value) {
-    if (value.type === tokenizer_1.TokenType.DIMENSION_TOKEN) {
+    if (value.type === 15 /* DIMENSION_TOKEN */) {
         if (value.unit === DEG || value.unit === GRAD || value.unit === RAD || value.unit === TURN) {
             return true;
         }

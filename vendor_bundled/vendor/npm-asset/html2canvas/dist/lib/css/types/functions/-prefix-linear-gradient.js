@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.prefixLinearGradient = void 0;
 var parser_1 = require("../../syntax/parser");
-var image_1 = require("../image");
-var tokenizer_1 = require("../../syntax/tokenizer");
 var angle_1 = require("../angle");
 var gradient_1 = require("./gradient");
 var prefixLinearGradient = function (context, tokens) {
@@ -12,7 +10,7 @@ var prefixLinearGradient = function (context, tokens) {
     parser_1.parseFunctionArgs(tokens).forEach(function (arg, i) {
         if (i === 0) {
             var firstToken = arg[0];
-            if (firstToken.type === tokenizer_1.TokenType.IDENT_TOKEN &&
+            if (firstToken.type === 20 /* IDENT_TOKEN */ &&
                 ['top', 'left', 'right', 'bottom'].indexOf(firstToken.value) !== -1) {
                 angle = angle_1.parseNamedSide(arg);
                 return;
@@ -28,7 +26,7 @@ var prefixLinearGradient = function (context, tokens) {
     return {
         angle: angle,
         stops: stops,
-        type: image_1.CSSImageType.LINEAR_GRADIENT
+        type: 1 /* LINEAR_GRADIENT */
     };
 };
 exports.prefixLinearGradient = prefixLinearGradient;

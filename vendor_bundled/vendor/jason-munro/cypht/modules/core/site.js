@@ -307,7 +307,7 @@ var Hm_Ajax_Request = function() { return {
 var Hm_Notices = {
     hide_id: false,
 
-    show: function(msgs) {
+    show: function(msgs, keep) {
         var msg_list = [];
         for (var i in msgs) {
             if (msgs[i].match(/^ERR/)) {
@@ -317,7 +317,18 @@ var Hm_Notices = {
                 msg_list.push(msgs[i]);
             }
         }
-        $('.sys_messages').html(msg_list.join(', '));
+        if (!keep) {
+            $('.sys_messages').html(msg_list.join(', '));
+        }
+        else {
+            var existing = $('.sys_messages').html();
+            if (existing) {
+                $('.sys_messages').append('<br />'+msg_list.join(', '));
+            }
+            else {
+                $('.sys_messages').html(msg_list.join(', '));
+            }
+        }
         $('.sys_messages').show();
         $('.sys_messages').on('click', function() {
             $('.sys_messages').hide();
@@ -1133,7 +1144,6 @@ var Hm_Folders = {
             Hm_Folders.update_folder_list();
             sessionStorage.clear();
             Hm_Utils.restore_local_settings(ui_state);
-            document.cookie = 'hm_reload_folders=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
             Hm_Utils.expand_core_settings();
             return true;
         }
@@ -1624,6 +1634,79 @@ var hl_save_link = function() {
     }
 };
 
+var reset_default_value_checkbox = function() {
+    let checkbox = this.parentElement.parentElement.firstChild;
+    if (checkbox.disabled == false) {
+        this.style.transform = "scaleX(1)";
+        this.parentElement.setAttribute("restore_aria_label","Restore current value");
+        checkbox.setAttribute("current_value", checkbox.checked);
+        checkbox.checked = false;
+        checkbox.disabled = true;
+    }
+    else {
+        this.style.transform = "scaleX(-1)";
+        this.parentElement.setAttribute("restore_aria_label","Restore default value")
+        checkbox.checked = checkbox.getAttribute("current_value") == "true" ? true : false;
+        checkbox.disabled = false;
+    }
+};
+
+var reset_default_value_select = function() {
+    let field = this.parentElement.parentElement.firstChild;
+    let tab_static_default_value = {"inline_message_style" : 0, "smtp_compose_type" : 0, "theme_setting" : 0,
+    "timezone" : 0, "list_style" : 0, "idle_time" : 4, "start_page" : 0, "default_sort_order" : 0,
+    "unread_since" : 1, "flagged_since" : 1, "all_since" : 1, "all_email_since" : 1, "feed_since" : 0,
+    "sent_since" : 1};
+    
+    if (this.style.transform == "scaleX(1)") {
+        this.style.transform = "scaleX(-1)";
+        this.parentElement.setAttribute("restore_aria_label","Restore default value")
+        field.selectedIndex = field.getAttribute("current_value");
+        field.style.backgroundColor = "#fff";
+        field.style.pointerEvents = "auto";
+        field.style.touchAction = "auto";
+    }
+    else {
+        this.style.transform = "scaleX(1)";
+        this.parentElement.setAttribute("restore_aria_label","Restore current value");
+        field.setAttribute("current_value", field.selectedIndex);
+        if (field.getAttribute("name") == "language") {
+            for(let compter = 0; field.length > compter; compter ++){
+                if (field.options[compter].getAttribute("value") == "en") {
+                    field.selectedIndex = field.options[compter].index;
+                }
+            }
+        }
+        else {
+            field.selectedIndex = tab_static_default_value[field.getAttribute("name")];
+        }
+        field.style.backgroundColor = "#eee";
+        field.style.pointerEvents = "none";
+        field.style.touchAction = "none";
+    }
+};
+
+var reset_default_value_input = function() {
+    let field = this.parentElement.parentElement.firstChild;
+    if (this.style.transform == "scaleX(1)") {
+        this.style.transform = "scaleX(-1)";
+        this.parentElement.setAttribute("restore_aria_label","Restore default value")
+        field.value = field.getAttribute("current_value");
+        field.style.backgroundColor = "#fff";
+        field.style.pointerEvents = "auto";
+        field.style.touchAction = "auto";
+    }
+    else {
+        this.style.transform = "scaleX(1)";
+        this.parentElement.setAttribute("restore_aria_label","Restore current value");
+        field.setAttribute("current_value", field.value);
+        field.value = 20;
+        field.style.backgroundColor = "#eee";
+        field.style.pointerEvents = "none";
+        field.style.touchAction = "none";
+    }
+};
+
 /* create a default message list object */
 var Hm_Message_List = new Message_List();
 
@@ -1686,6 +1769,11 @@ $(function() {
         $('.list_controls.on_mobile').hide();
     }
     $('.offline').on("click", function() { Hm_Utils.test_connection(); });
+    if (hm_page_name() == 'settings') {
+        $('.reset_default_value_checkbox').on("click", reset_default_value_checkbox);
+        $('.reset_default_value_select').on("click", reset_default_value_select);
+        $('.reset_default_value_input').on("click", reset_default_value_input);
+    }
     
     fixLtrInRtl()
 });

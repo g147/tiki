@@ -23,13 +23,13 @@ describe('types', function () {
                 it('url(test.jpg)', function () {
                     return assert_1.deepStrictEqual(parse(context, 'url(http://example.com/test.jpg)'), {
                         url: 'http://example.com/test.jpg',
-                        type: image_1.CSSImageType.URL
+                        type: 0 /* URL */
                     });
                 });
                 it('url("test.jpg")', function () {
                     return assert_1.deepStrictEqual(parse(context, 'url("http://example.com/test.jpg")'), {
                         url: 'http://example.com/test.jpg',
-                        type: image_1.CSSImageType.URL
+                        type: 0 /* URL */
                     });
                 });
             });
@@ -37,7 +37,7 @@ describe('types', function () {
                 it('linear-gradient(#f69d3c, #3f87a6)', function () {
                     return assert_1.deepStrictEqual(parse(context, 'linear-gradient(#f69d3c, #3f87a6)'), {
                         angle: angle_1.deg(180),
-                        type: image_1.CSSImageType.LINEAR_GRADIENT,
+                        type: 1 /* LINEAR_GRADIENT */,
                         stops: [
                             { color: color_1.pack(0xf6, 0x9d, 0x3c, 1), stop: null },
                             { color: color_1.pack(0x3f, 0x87, 0xa6, 1), stop: null }
@@ -47,7 +47,7 @@ describe('types', function () {
                 it('linear-gradient(yellow, blue)', function () {
                     return assert_1.deepStrictEqual(parse(context, 'linear-gradient(yellow, blue)'), {
                         angle: angle_1.deg(180),
-                        type: image_1.CSSImageType.LINEAR_GRADIENT,
+                        type: 1 /* LINEAR_GRADIENT */,
                         stops: [
                             { color: colorParse(context, 'yellow'), stop: null },
                             { color: colorParse(context, 'blue'), stop: null }
@@ -57,7 +57,7 @@ describe('types', function () {
                 it('linear-gradient(to bottom, yellow, blue)', function () {
                     return assert_1.deepStrictEqual(parse(context, 'linear-gradient(to bottom, yellow, blue)'), {
                         angle: angle_1.deg(180),
-                        type: image_1.CSSImageType.LINEAR_GRADIENT,
+                        type: 1 /* LINEAR_GRADIENT */,
                         stops: [
                             { color: colorParse(context, 'yellow'), stop: null },
                             { color: colorParse(context, 'blue'), stop: null }
@@ -67,7 +67,7 @@ describe('types', function () {
                 it('linear-gradient(180deg, yellow, blue)', function () {
                     return assert_1.deepStrictEqual(parse(context, 'linear-gradient(180deg, yellow, blue)'), {
                         angle: angle_1.deg(180),
-                        type: image_1.CSSImageType.LINEAR_GRADIENT,
+                        type: 1 /* LINEAR_GRADIENT */,
                         stops: [
                             { color: colorParse(context, 'yellow'), stop: null },
                             { color: colorParse(context, 'blue'), stop: null }
@@ -77,7 +77,7 @@ describe('types', function () {
                 it('linear-gradient(to top, blue, yellow)', function () {
                     return assert_1.deepStrictEqual(parse(context, 'linear-gradient(to top, blue, yellow)'), {
                         angle: 0,
-                        type: image_1.CSSImageType.LINEAR_GRADIENT,
+                        type: 1 /* LINEAR_GRADIENT */,
                         stops: [
                             { color: colorParse(context, 'blue'), stop: null },
                             { color: colorParse(context, 'yellow'), stop: null }
@@ -87,10 +87,10 @@ describe('types', function () {
                 it('linear-gradient(to top right, blue, yellow)', function () {
                     return assert_1.deepStrictEqual(parse(context, 'linear-gradient(to top right, blue, yellow)'), {
                         angle: [
-                            { type: tokenizer_1.TokenType.PERCENTAGE_TOKEN, number: 100, flags: 4 },
-                            { type: tokenizer_1.TokenType.NUMBER_TOKEN, number: 0, flags: 4 }
+                            { type: 16 /* PERCENTAGE_TOKEN */, number: 100, flags: 4 },
+                            { type: 17 /* NUMBER_TOKEN */, number: 0, flags: 4 }
                         ],
-                        type: image_1.CSSImageType.LINEAR_GRADIENT,
+                        type: 1 /* LINEAR_GRADIENT */,
                         stops: [
                             { color: colorParse(context, 'blue'), stop: null },
                             { color: colorParse(context, 'yellow'), stop: null }
@@ -100,12 +100,12 @@ describe('types', function () {
                 it('linear-gradient(to bottom, yellow 0%, blue 100%)', function () {
                     return assert_1.deepStrictEqual(parse(context, 'linear-gradient(to bottom, yellow 0%, blue 100%)'), {
                         angle: angle_1.deg(180),
-                        type: image_1.CSSImageType.LINEAR_GRADIENT,
+                        type: 1 /* LINEAR_GRADIENT */,
                         stops: [
                             {
                                 color: colorParse(context, 'yellow'),
                                 stop: {
-                                    type: tokenizer_1.TokenType.PERCENTAGE_TOKEN,
+                                    type: 16 /* PERCENTAGE_TOKEN */,
                                     number: 0,
                                     flags: tokenizer_1.FLAG_INTEGER
                                 }
@@ -113,7 +113,7 @@ describe('types', function () {
                             {
                                 color: colorParse(context, 'blue'),
                                 stop: {
-                                    type: tokenizer_1.TokenType.PERCENTAGE_TOKEN,
+                                    type: 16 /* PERCENTAGE_TOKEN */,
                                     number: 100,
                                     flags: tokenizer_1.FLAG_INTEGER
                                 }
@@ -124,16 +124,16 @@ describe('types', function () {
                 it('linear-gradient(to top left, lightpink, lightpink 5px, white 5px, white 10px)', function () {
                     return assert_1.deepStrictEqual(parse(context, 'linear-gradient(to top left, lightpink, lightpink 5px, white 5px, white 10px)'), {
                         angle: [
-                            { type: tokenizer_1.TokenType.PERCENTAGE_TOKEN, number: 100, flags: 4 },
-                            { type: tokenizer_1.TokenType.PERCENTAGE_TOKEN, number: 100, flags: 4 }
+                            { type: 16 /* PERCENTAGE_TOKEN */, number: 100, flags: 4 },
+                            { type: 16 /* PERCENTAGE_TOKEN */, number: 100, flags: 4 }
                         ],
-                        type: image_1.CSSImageType.LINEAR_GRADIENT,
+                        type: 1 /* LINEAR_GRADIENT */,
                         stops: [
                             { color: colorParse(context, 'lightpink'), stop: null },
                             {
                                 color: colorParse(context, 'lightpink'),
                                 stop: {
-                                    type: tokenizer_1.TokenType.DIMENSION_TOKEN,
+                                    type: 15 /* DIMENSION_TOKEN */,
                                     number: 5,
                                     flags: tokenizer_1.FLAG_INTEGER,
                                     unit: 'px'
@@ -142,7 +142,7 @@ describe('types', function () {
                             {
                                 color: colorParse(context, 'white'),
                                 stop: {
-                                    type: tokenizer_1.TokenType.DIMENSION_TOKEN,
+                                    type: 15 /* DIMENSION_TOKEN */,
                                     number: 5,
                                     flags: tokenizer_1.FLAG_INTEGER,
                                     unit: 'px'
@@ -151,7 +151,7 @@ describe('types', function () {
                             {
                                 color: colorParse(context, 'white'),
                                 stop: {
-                                    type: tokenizer_1.TokenType.DIMENSION_TOKEN,
+                                    type: 15 /* DIMENSION_TOKEN */,
                                     number: 10,
                                     flags: tokenizer_1.FLAG_INTEGER,
                                     unit: 'px'
@@ -165,12 +165,12 @@ describe('types', function () {
                 it('-webkit-linear-gradient(left, #cedbe9 0%, #aac5de 17%, #3a8bc2 84%, #26558b 100%)', function () {
                     return assert_1.deepStrictEqual(parse(context, '-webkit-linear-gradient(left, #cedbe9 0%, #aac5de 17%, #3a8bc2 84%, #26558b 100%)'), {
                         angle: angle_1.deg(90),
-                        type: image_1.CSSImageType.LINEAR_GRADIENT,
+                        type: 1 /* LINEAR_GRADIENT */,
                         stops: [
                             {
                                 color: colorParse(context, '#cedbe9'),
                                 stop: {
-                                    type: tokenizer_1.TokenType.PERCENTAGE_TOKEN,
+                                    type: 16 /* PERCENTAGE_TOKEN */,
                                     number: 0,
                                     flags: tokenizer_1.FLAG_INTEGER
                                 }
@@ -178,7 +178,7 @@ describe('types', function () {
                             {
                                 color: colorParse(context, '#aac5de'),
                                 stop: {
-                                    type: tokenizer_1.TokenType.PERCENTAGE_TOKEN,
+                                    type: 16 /* PERCENTAGE_TOKEN */,
                                     number: 17,
                                     flags: tokenizer_1.FLAG_INTEGER
                                 }
@@ -186,7 +186,7 @@ describe('types', function () {
                             {
                                 color: colorParse(context, '#3a8bc2'),
                                 stop: {
-                                    type: tokenizer_1.TokenType.PERCENTAGE_TOKEN,
+                                    type: 16 /* PERCENTAGE_TOKEN */,
                                     number: 84,
                                     flags: tokenizer_1.FLAG_INTEGER
                                 }
@@ -194,7 +194,7 @@ describe('types', function () {
                             {
                                 color: colorParse(context, '#26558b'),
                                 stop: {
-                                    type: tokenizer_1.TokenType.PERCENTAGE_TOKEN,
+                                    type: 16 /* PERCENTAGE_TOKEN */,
                                     number: 100,
                                     flags: tokenizer_1.FLAG_INTEGER
                                 }
@@ -205,12 +205,12 @@ describe('types', function () {
                 it('-moz-linear-gradient(top, #cce5f4 0%, #00263c 100%)', function () {
                     return assert_1.deepStrictEqual(parse(context, '-moz-linear-gradient(top, #cce5f4 0%, #00263c 100%)'), {
                         angle: angle_1.deg(180),
-                        type: image_1.CSSImageType.LINEAR_GRADIENT,
+                        type: 1 /* LINEAR_GRADIENT */,
                         stops: [
                             {
                                 color: colorParse(context, '#cce5f4'),
                                 stop: {
-                                    type: tokenizer_1.TokenType.PERCENTAGE_TOKEN,
+                                    type: 16 /* PERCENTAGE_TOKEN */,
                                     number: 0,
                                     flags: tokenizer_1.FLAG_INTEGER
                                 }
@@ -218,7 +218,7 @@ describe('types', function () {
                             {
                                 color: colorParse(context, '#00263c'),
                                 stop: {
-                                    type: tokenizer_1.TokenType.PERCENTAGE_TOKEN,
+                                    type: 16 /* PERCENTAGE_TOKEN */,
                                     number: 100,
                                     flags: tokenizer_1.FLAG_INTEGER
                                 }

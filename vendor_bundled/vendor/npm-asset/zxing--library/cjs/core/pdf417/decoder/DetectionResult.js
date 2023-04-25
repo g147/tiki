@@ -181,6 +181,9 @@ var DetectionResult = /** @class */ (function () {
     };
     DetectionResult.prototype.adjustRowNumbers = function (barcodeColumn, codewordsRow, codewords) {
         var e_1, _a;
+        if (this.detectionResultColumns[barcodeColumn - 1] == null) {
+            return;
+        }
         var codeword = codewords[codewordsRow];
         var previousColumnCodewords = this.detectionResultColumns[barcodeColumn - 1].getCodewords();
         var nextColumnCodewords = previousColumnCodewords;

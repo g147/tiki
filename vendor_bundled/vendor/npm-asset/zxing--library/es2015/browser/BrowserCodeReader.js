@@ -656,6 +656,10 @@ export class BrowserCodeReader {
         const binaryBitmap = this.createBinaryBitmap(element);
         return this.decodeBitmap(binaryBitmap);
     }
+    _isHTMLVideoElement(mediaElement) {
+        const potentialVideo = mediaElement;
+        return potentialVideo.videoWidth !== 0;
+    }
     /**
      * Creates a binaryBitmap based in some image source.
      *
@@ -663,7 +667,12 @@ export class BrowserCodeReader {
      */
     createBinaryBitmap(mediaElement) {
         const ctx = this.getCaptureCanvasContext(mediaElement);
-        this.drawImageOnCanvas(ctx, mediaElement);
+        if (this._isHTMLVideoElement(mediaElement)) {
+            this.drawFrameOnCanvas(mediaElement);
+        }
+        else {
+            this.drawImageOnCanvas(mediaElement);
+        }
         const canvas = this.getCaptureCanvas(mediaElement);
         const luminanceSource = new HTMLCanvasElementLuminanceSource(canvas);
         const hybridBinarizer = new HybridBinarizer(luminanceSource);
@@ -691,10 +700,16 @@ export class BrowserCodeReader {
         return this.captureCanvas;
     }
     /**
+      * Overwriting this allows you to manipulate the next frame in anyway you want before decode.
+      */
+    drawFrameOnCanvas(srcElement, dimensions = { sx: 0, sy: 0, sWidth: srcElement.videoWidth, sHeight: srcElement.videoHeight, dx: 0, dy: 0, dWidth: srcElement.videoWidth, dHeight: srcElement.videoHeight }, canvasElementContext = this.captureCanvasContext) {
+        canvasElementContext.drawImage(srcElement, dimensions.sx, dimensions.sy, dimensions.sWidth, dimensions.sHeight, dimensions.dx, dimensions.dy, dimensions.dWidth, dimensions.dHeight);
+    }
+    /**
      * Ovewriting this allows you to manipulate the snapshot image in anyway you want before decode.
      */
-    drawImageOnCanvas(canvasElementContext, srcElement) {
-        canvasElementContext.drawImage(srcElement, 0, 0);
+    drawImageOnCanvas(srcElement, dimensions = { sx: 0, sy: 0, sWidth: srcElement.naturalWidth, sHeight: srcElement.naturalHeight, dx: 0, dy: 0, dWidth: srcElement.naturalWidth, dHeight: srcElement.naturalHeight }, canvasElementContext = this.captureCanvasContext) {
+        canvasElementContext.drawImage(srcElement, dimensions.sx, dimensions.sy, dimensions.sWidth, dimensions.sHeight, dimensions.dx, dimensions.dy, dimensions.dWidth, dimensions.dHeight);
     }
     /**
      * Call the encapsulated readers decode

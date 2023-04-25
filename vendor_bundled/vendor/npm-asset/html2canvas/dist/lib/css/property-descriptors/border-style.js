@@ -1,32 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.borderLeftStyle = exports.borderBottomStyle = exports.borderRightStyle = exports.borderTopStyle = exports.BORDER_STYLE = void 0;
-var IPropertyDescriptor_1 = require("../IPropertyDescriptor");
-var BORDER_STYLE;
-(function (BORDER_STYLE) {
-    BORDER_STYLE[BORDER_STYLE["NONE"] = 0] = "NONE";
-    BORDER_STYLE[BORDER_STYLE["SOLID"] = 1] = "SOLID";
-    BORDER_STYLE[BORDER_STYLE["DASHED"] = 2] = "DASHED";
-    BORDER_STYLE[BORDER_STYLE["DOTTED"] = 3] = "DOTTED";
-    BORDER_STYLE[BORDER_STYLE["DOUBLE"] = 4] = "DOUBLE";
-})(BORDER_STYLE = exports.BORDER_STYLE || (exports.BORDER_STYLE = {}));
+exports.borderLeftStyle = exports.borderBottomStyle = exports.borderRightStyle = exports.borderTopStyle = void 0;
 var borderStyleForSide = function (side) { return ({
     name: "border-" + side + "-style",
     initialValue: 'solid',
     prefix: false,
-    type: IPropertyDescriptor_1.PropertyDescriptorParsingType.IDENT_VALUE,
+    type: 2 /* IDENT_VALUE */,
     parse: function (_context, style) {
         switch (style) {
             case 'none':
-                return BORDER_STYLE.NONE;
+                return 0 /* NONE */;
             case 'dashed':
-                return BORDER_STYLE.DASHED;
+                return 2 /* DASHED */;
             case 'dotted':
-                return BORDER_STYLE.DOTTED;
+                return 3 /* DOTTED */;
             case 'double':
-                return BORDER_STYLE.DOUBLE;
+                return 4 /* DOUBLE */;
         }
-        return BORDER_STYLE.SOLID;
+        return 1 /* SOLID */;
     }
 }); };
 exports.borderTopStyle = borderStyleForSide('top');

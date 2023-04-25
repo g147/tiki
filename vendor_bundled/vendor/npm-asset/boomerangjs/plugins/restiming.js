@@ -244,6 +244,9 @@
 	// Namespaced data
 	var SPECIAL_DATA_NAMESPACED_TYPE = "5";
 
+	// Service worker type
+	var SPECIAL_DATA_SERVICE_WORKER_TYPE = "6";
+
 	/**
 	 * Converts entries to a Trie (`splitAtPath=true`) or Radix
 	 * Trie (`splitAtPath=false`):
@@ -448,6 +451,20 @@
 			// more than two nodes and not the top, we can't compress any more
 			return false;
 		}
+	}
+
+	/**
+	 * Rounds up the timing value
+	 *
+	 * @param {number} time Time
+	 * @returns {number} Rounded up timestamp
+	 */
+	function roundUpTiming(time) {
+		if (typeof time !== "number") {
+			time = 0;
+		}
+
+		return Math.ceil(time ? time : 0);
 	}
 
 	/**
@@ -890,16 +907,20 @@
 		for (i = 0; i < entries.length; i++) {
 			e = entries[i];
 
+			if (typeof e.name !== "string") {
+				continue;
+			}
+
 			// skip non-resource URLs
 			if (e.name.indexOf("http:") !== 0 &&
 			    e.name.indexOf("https:") !== 0) {
 				continue;
 			}
 
-			// skip boomerang.js and config URLs
-			if (e.name.indexOf(BOOMR.url) > -1 ||
-			    e.name.indexOf(BOOMR.config_url) > -1 ||
-			    (typeof BOOMR.getBeaconURL === "function" && BOOMR.getBeaconURL() && e.name.indexOf(BOOMR.getBeaconURL()) > -1)) {
+			// skip beacon URLs
+			if (typeof BOOMR.getBeaconURL === "function" &&
+			    BOOMR.getBeaconURL() &&
+			    e.name.indexOf(BOOMR.getBeaconURL()) > -1) {
 				continue;
 			}
 
@@ -1197,7 +1218,7 @@
 					}).length;
 			},
 			0
-		);
+			);
 	}
 
 	/**
@@ -1358,6 +1379,22 @@
 
 			if (e.hasOwnProperty("linkAttrs")) {
 				data += SPECIAL_DATA_PREFIX + SPECIAL_DATA_LINK_ATTR_TYPE + e.linkAttrs;
+			}
+
+			if (e.workerStart && typeof e.workerStart === "number" && e.workerStart !== 0) {
+				// Has Service worker timing data that's non zero. Resource request not intercepted
+				// by Service worker always return 0 as per MDN
+				// https://developer.mozilla.org/en-US/docs/Web/API/PerformanceResourceTiming/workerStart
+
+				// Lets round it and offset from startTime. We are going to round up the workerStart
+				// timing specifically. We are doing this to avoid the issue where the case of Service
+				// worker timestamps being sub-milliseconds more than startTime getting incorrectly
+				// marked as 0ms (due to round down).
+				// We feel marking such cases as 0ms, after rounding down, for workerStart would present
+				// more incorrect indication to the user. Hence the decision to round up.
+				var wsRoundedUp = roundUpTiming(e.workerStart);
+				var workerStartOffset = trimTiming(wsRoundedUp, e.startTime);
+				data += SPECIAL_DATA_PREFIX + SPECIAL_DATA_SERVICE_WORKER_TYPE + toBase36(workerStartOffset);
 			}
 
 			url = trimUrl(e.name, impl.trimUrls);
@@ -1779,7 +1816,12 @@
 		sentNavBeacon: false,
 		initialized: false,
 		supported: null,
-		xhr_load: function() {
+		xhr_load: function(data) {
+			if (data && data.restiming) {
+				// put RT data on beacon
+				addToBeacon(data.restiming);
+			}
+
 			if (this.complete) {
 				return;
 			}
@@ -1988,6 +2030,7 @@
 		//
 		/* BEGIN_DEBUG */,
 		trimTiming: trimTiming,
+		roundUpTiming: roundUpTiming,
 		convertToTrie: convertToTrie,
 		optimizeTrie: optimizeTrie,
 		findPerformanceEntriesForFrame: findPerformanceEntriesForFrame,
@@ -2012,6 +2055,7 @@
 		SPECIAL_DATA_SIZE_TYPE: SPECIAL_DATA_SIZE_TYPE,
 		SPECIAL_DATA_SCRIPT_ATTR_TYPE: SPECIAL_DATA_SCRIPT_ATTR_TYPE,
 		SPECIAL_DATA_LINK_ATTR_TYPE: SPECIAL_DATA_LINK_ATTR_TYPE,
+		SPECIAL_DATA_SERVICE_WORKER_TYPE: SPECIAL_DATA_SERVICE_WORKER_TYPE,
 		ASYNC_ATTR: ASYNC_ATTR,
 		DEFER_ATTR: DEFER_ATTR,
 		LOCAT_ATTR: LOCAT_ATTR,
