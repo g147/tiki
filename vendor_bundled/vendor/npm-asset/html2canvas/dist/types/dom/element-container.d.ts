@@ -5,7 +5,8 @@ import { Context } from '../core/context';
 export declare const enum FLAGS {
     CREATES_STACKING_CONTEXT = 2,
     CREATES_REAL_STACKING_CONTEXT = 4,
-    IS_LIST_OWNER = 8
+    IS_LIST_OWNER = 8,
+    DEBUG_RENDER = 16
 }
 export declare class ElementContainer {
     protected readonly context: Context;

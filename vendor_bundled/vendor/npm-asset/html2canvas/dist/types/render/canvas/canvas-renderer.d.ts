@@ -2,13 +2,13 @@ import { ElementPaint, StackingContext } from '../stacking-context';
 import { Color } from '../../css/types/color';
 import { ElementContainer } from '../../dom/element-container';
 import { BORDER_STYLE } from '../../css/property-descriptors/border-style';
-import { CSSParsedDeclaration } from '../../css/index';
+import { CSSParsedDeclaration } from '../../css';
 import { TextContainer } from '../../dom/text-container';
 import { Path } from '../path';
 import { BoundCurves } from '../bound-curves';
 import { TextBounds } from '../../css/layout/text';
-import { ReplacedElementContainer } from '../../dom/replaced-elements/index';
-import { EffectTarget, IElementEffect } from '../effects';
+import { ReplacedElementContainer } from '../../dom/replaced-elements';
+import { IElementEffect } from '../effects';
 import { Renderer } from '../renderer';
 import { Context } from '../../core/context';
 export declare type RenderConfigurations = RenderOptions & {
@@ -28,7 +28,7 @@ export declare class CanvasRenderer extends Renderer {
     private readonly _activeEffects;
     private readonly fontMetrics;
     constructor(context: Context, options: RenderConfigurations);
-    applyEffects(effects: IElementEffect[], target: EffectTarget): void;
+    applyEffects(effects: IElementEffect[]): void;
     applyEffect(effect: IElementEffect): void;
     popEffect(): void;
     renderStack(stack: StackingContext): Promise<void>;

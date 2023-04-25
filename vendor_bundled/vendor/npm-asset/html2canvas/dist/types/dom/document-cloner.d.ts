@@ -3,6 +3,7 @@ import { Context } from '../core/context';
 export interface CloneOptions {
     ignoreElements?: (element: Element) => boolean;
     onclone?: (document: Document, element: HTMLElement) => void;
+    allowTaint?: boolean;
 }
 export interface WindowOptions {
     scrollX: number;
@@ -26,9 +27,13 @@ export declare class DocumentCloner {
     constructor(context: Context, element: HTMLElement, options: CloneConfigurations);
     toIFrame(ownerDocument: Document, windowSize: Bounds): Promise<HTMLIFrameElement>;
     createElementClone<T extends HTMLElement | SVGElement>(node: T): HTMLElement | SVGElement;
+    createCustomElementClone(node: HTMLElement): HTMLElement;
     createStyleClone(node: HTMLStyleElement): HTMLStyleElement;
     createCanvasClone(canvas: HTMLCanvasElement): HTMLImageElement | HTMLCanvasElement;
-    cloneNode(node: Node): Node;
+    createVideoClone(video: HTMLVideoElement): HTMLCanvasElement;
+    appendChildNode(clone: HTMLElement | SVGElement, child: Node, copyStyles: boolean): void;
+    cloneChildNodes(node: Element, clone: HTMLElement | SVGElement, copyStyles: boolean): void;
+    cloneNode(node: Node, copyStyles: boolean): Node;
     resolvePseudoContent(node: Element, clone: Element, style: CSSStyleDeclaration, pseudoElt: PseudoElementType): HTMLElement | void;
     static destroy(container: HTMLIFrameElement): boolean;
 }
