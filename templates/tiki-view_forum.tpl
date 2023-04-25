@@ -154,6 +154,7 @@
                 <input type="hidden" name="comments_threshold" value="{$comments_threshold|escape}">
                 <input type="hidden" name="thread_sort_mode" value="{$thread_sort_mode|escape}">
                 <input type="hidden" name="forumId" value="{$forumId|escape}">
+                <input type="hidden" name="openpost" value="{$openpost|escape}">
 
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label" for="comments_title">{tr}Title{/tr}</label>
@@ -213,7 +214,12 @@
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label" for="editpost">{tr}Message{/tr}</label>
                         <div class="col-sm-10">
-                            {textarea id="editpost" class="form-control" name="comments_data" _simple="y" codemirror="y" syntax="tiki" _toolbars=$prefs.feature_forum_parse _preview=$prefs.ajax_edit_previews}{$comment_data}{/textarea}
+                            {if $prefs.feature_wysiwyg eq 'y' and $prefs.wysiwyg_htmltowiki eq 'y' and $prefs.feature_forum_parse eq 'y' and ($prefs.wysiwyg_default eq 'y' and not isset($smarty.request.mode_wysiwyg) or $smarty.request.mode_wysiwyg eq 'y')}
+                                {$forum_wysiwyg = 'y'}
+                            {else}
+                                {$forum_wysiwyg = 'n'}
+                            {/if}
+                            {textarea id="editpost" class="form-control" name="comments_data" codemirror="y" syntax="tiki" _toolbars=$prefs.feature_forum_parse _wysiwyg=$forum_wysiwyg _preview=$prefs.ajax_edit_previews}{$comment_data}{/textarea}
                         </div>
                     </div>
                     {if ($forum_info.att eq 'att_all') or ($forum_info.att eq 'att_admin' and $tiki_p_admin_forum eq 'y') or ($forum_info.att eq 'att_perm' and $tiki_p_forum_attach eq 'y')}
@@ -355,7 +361,13 @@
                             {if empty($user)}
                                 {tr}Enter your name:{/tr}&nbsp;<input type="text" maxlength="50" id="anonymous_name" name="anonymous_name">
                             {/if}
-                            <input type="submit" class="btn btn-primary btn-sm" name="comments_postComment" value="{tr}Post{/tr}" {if empty($user)}onclick="setCookie('anonymous_name',document.getElementById('anonymous_name').value);needToConfirm=false;"{/if}>
+                            <input type="submit" class="btn btn-primary btn-sm" name="comments_postComment" value="{tr}Post{/tr}"
+                                    {if empty($user)}
+                                        onclick="setCookie('anonymous_name',document.getElementById('anonymous_name').value);needToConfirm=false;"
+                                    {else}
+                                        onclick="needToConfirm=false;"
+                                    {/if}
+                            >
                             {if $prefs.ajax_edit_previews eq 'n'}
                                 <input type="submit" class="btn btn-secondary btn-sm" name="comments_previewComment" value="{tr}Preview{/tr}" {if empty($user)}onclick="setCookie('anonymous_name',document.getElementById('anonymous_name').value);needToConfirm=false;"{/if}>
                             {/if}
