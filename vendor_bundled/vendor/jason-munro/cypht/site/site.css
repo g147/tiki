@@ -7,7 +7,7 @@ html, body { max-width: 100%; min-height: 100%; background-color: #fff; }
 body { background: linear-gradient(180deg, #faf6f5, #faf6f5, #faf6f5, #faf6f5, #fff); font-size: 1em; height: 100%; color: #333; font-family: Arial; padding: 0px; margin: 0px; min-width: 700px; font-size: 100%; }
 table { width: 100%; border-spacing: 0px; }
 td { vertical-align: top; }
-.adv_controls .combined_sort, .message_list .combined_sort { font-size: 80%; margin-top: -2px; ; float: right; margin-right: 225px; }
+.adv_controls .combined_sort, .message_list .combined_sort { font-size: 80%; margin-top: -2px; ; float: right; margin-right: 125px; }
 .adv_controls .combined_sort { margin-right: 20px; }
 .search_content .combined_sort { display: none; }
 .offline { display: none; cursor: pointer; position: absolute; right: 0px; top: 0px; z-index: 101; color: white; background-color: red; padding: 18px; padding-right: 25px; padding-left: 25px; font-weight: bold; }
@@ -261,7 +261,7 @@ div.unseen, .unseen .subject { font-weight: 700; }
 .mobile .login_form { margin-top: 60px; display: block; float: none; width: 100%; background-color: #fff; font-size: 130%; height: auto; }
 .mobile .account_icon { width: 20px; height: 20px; }
 .mobile .imap_filter { display: none; }
-.mobile .list_controls { color: #777; background: linear-gradient(180deg, #fff, #fff, #f7f2ef); border-bottom: solid 1px #ede8e6; height: 48px; padding-left: 5px; padding-right: 5px; }
+.mobile .list_controls { color: #777; background: linear-gradient(180deg, #fff, #fff, #f7f2ef); height: 48px; padding-left: 5px; padding-right: 5px; }
 .mobile .list_controls img { margin-top: 10px }
 .mobile .page_links { font-size: 150%; }
 .mobile .page_links a img { width: 24px; height: 24px; }
@@ -271,6 +271,11 @@ div.unseen, .unseen .subject { font-weight: 700; }
 .mobile .toggle_recipients { top: 8px !important; right: 0px !important; }
 .mobile .prevnext, .mobile .news_cell .subject div img { width: 20px; height: 20px; }
 .mobile .long_session { float: left; clear: both; }
+.reset_default_value_checkbox, .reset_default_value_select, .reset_default_value_input { vertical-align: bottom; transform: scaleX(-1); width: 18px; height: 18px; margin-bottom: 3px; margin-left: 6px; }
+.tooltip_restore { position: relative; }
+.tooltip_restore:hover:after, .tooltip_restore:focus:after { content: attr(restore_aria_label); position: absolute; top: -2.4em; left: 50%; transform: translateX(-50%); z-index: 1; white-space: nowrap; padding: 5px 14px; background: #777; color: #fff; border-radius: 4px; font-size: 1rem; }
+[restore_aria_label]:hover:before, [restore_aria_label]:focus:before { content: "▼"; position: absolute; top: -1em; left: 50%; transform: translateX(-50%); color: #777; }
+[restore_aria_label]:focus { outline: none; }
 
 @media print {
     .sys_messages, .next, .prev, .folder_list, .msg_parts, .header_links, .content_title, .add_contact_row, .unsaved_icon, .add_vcal { display: none !important; }
@@ -306,12 +311,11 @@ div.unseen, .unseen .subject { font-weight: 700; }
 #list_controls_menu {
     position: absolute;
     width: 50px; 
-    right: 10px;
+    right: 0px;
     display: none;
     padding-left: 14px;
     padding-bottom: 5px;
-    background: linear-gradient(180deg, #fff, #fff, #f7f2ef);
-    border-radius: 0 0 4px 4px;
+    background-color: #fff;
 }
 .add_contact_form input { margin: 5px; margin-left: 0px; }
 .add_contact_form { padding-top: 10px; display: block; }
@@ -418,7 +422,7 @@ div.unseen, .unseen .subject { font-weight: 700; }
 .jmap_section, .sent_setting, .imap_section { display: none; }
 .imap_server_setup .content_title { cursor: pointer; }
 .ctr_divider { padding-left: 5px; padding-right: 5px; color: #eee; vertical-align: 2px; font-weight: normal; font-size: 90%; }
-.move_to_location { text-transform: none; z-index: 1; position: absolute; display: none; background-color: #fff; padding: 10px; border: solid 1px #ede8e6; font-weight: normal; padding-right: 25px; padding-left: 0px; font-size: 80%; top: 34px; min-width: 55px; right: 2px; border-top: none; padding-top: 0px; }
+.move_to_location { text-transform: none; z-index: 50; position: absolute; display: none; background-color: #fff; padding: 10px; border: solid 1px #ede8e6; font-weight: normal; padding-right: 25px; padding-left: 0px; font-size: 80%; top: 34px; min-width: 55px; right: 2px; border-top: none; padding-top: 0px; }
 .move_to_location a { border: none; font-size: 100%; }
 .move_to_title { padding: 5px; padding-top: 10px; padding-left: 10px; background-color: #fff; border-bottom: solid 1px #ede8e6; margin-right: -25px; }
 .move_to_title span { float: right; font-size: 90%; }
@@ -429,6 +433,7 @@ div.unseen, .unseen .subject { font-weight: 700; }
 .imap_keyword { width: 120px; }
 .msg_part_icon { opacity: .4; padding-right: 5px; }
 .msg_part_placeholder { visibility: hidden; }
+.block_sender_link { color: brown; }
 
 .msg_part_desc { width: 40%; }
 .msg_part_mime { width: 25%; }
@@ -1190,4 +1195,8 @@ letter-spacing: unset;
   border-radius: 3px 3px 3px 3px;
   color: #059;
   background-color: #BEF;
+}
+
+.move_to_trackers .object-selector .results .form-check-label {
+  white-space: normal !important;
 }
