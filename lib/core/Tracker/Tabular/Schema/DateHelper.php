@@ -57,8 +57,16 @@ class DateHelper
                 if ($date) {
                     $timestamp = $date->getTimestamp();
                 } else {
-                    // TODO: use gmt when we merge timezone changes for tracker date fields
+                    $tz = date_default_timezone_get();
+                    if (substr($format, -1, 1) == 'e') {
+                        // use default user's or Tiki timezone for this import
+                        date_default_timezone_set(\TikiLib::lib('tiki')->get_display_timezone());
+                    } else {
+                        // use UTC for unknown time formats not specifying the time zone
+                        date_default_timezone_set('UTC');
+                    }
                     $timestamp = strtotime($value);
+                    date_default_timezone_set($tz);
                 }
                 if ($timestamp) {
                     $info['fields'][$permName] = $timestamp;

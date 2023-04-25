@@ -72,7 +72,7 @@ class ODBCManager
         $this->stopErrorHandler();
     }
 
-    public function replace($pk, $id, $row)
+    public function replace($pk, $id, $row, $fullRow = null)
     {
         $this->handleErrors();
         $conn = $this->getConnection();
@@ -104,7 +104,11 @@ class ODBCManager
             $rs = odbc_prepare($conn, $sql);
             odbc_execute($rs, [$id]);
             $result = odbc_fetch_array($rs);
+            $result = ['is_new' => false, 'entry' => $result];
         } else {
+            if ($fullRow) {
+                $row = $fullRow;
+            }
             $row = array_filter($row, function($val) {
                 if (is_bool($val) || is_int($val) || is_float($val)) {
                     return true;
@@ -124,6 +128,7 @@ class ODBCManager
             $rs = odbc_prepare($conn, $sql);
             odbc_execute($rs, []);
             $result = odbc_fetch_array($rs);
+            $result = ['is_new' => true, 'entry' => $result];
         }
         $this->stopErrorHandler();
         return $result;
@@ -162,6 +167,7 @@ class ODBCManager
         $params = array_filter(array_values($existing));
         odbc_execute($rs, $params);
         $result = odbc_fetch_array($rs);
+        $result = ['is_new' => false, 'entry' => $result];
         $this->stopErrorHandler();
         return $result;
     }
@@ -177,6 +183,34 @@ class ODBCManager
             $this->errors[] = tr("Error deleting remote item: %0", odbc_errormsg());
         }
         $this->stopErrorHandler();
+    }
+
+    public function valueExists($field, $value)
+    {
+        $this->handleErrors();
+        $conn = $this->getConnection();
+        $sql = "SELECT \"{$field}\" FROM {$this->config['table']} WHERE \"{$field}\" = ?";
+        $rs = odbc_prepare($conn, $sql);
+        odbc_execute($rs, [$value]);
+        $exists = odbc_num_rows($rs) > 0;
+        $this->stopErrorHandler();
+        return $exists;
+    }
+
+    public function nextValue($field)
+    {
+        $this->handleErrors();
+        $conn = $this->getConnection();
+        $sql = "SELECT MAX(CAST(\"$field\" AS INT)) as last from {$this->config['table']} WHERE ISNUMERIC(\"$field\") = 1";
+        $rs = odbc_prepare($conn, $sql);
+        odbc_execute($rs, []);
+        $result = odbc_fetch_array($rs);
+        $this->stopErrorHandler();
+        if (empty($result['last'])) {
+            return 1;
+        } else {
+            return $result['last'] + 1;
+        }
     }
 
     private function getConnection()

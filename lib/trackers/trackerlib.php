@@ -919,9 +919,12 @@ class TrackerLib extends TikiLib
                 }
             }
             if ($format) {
+                if ($list_mode !== 'csv') {
+                    // preserve spaces in the format string
+                    $format = str_replace(' ', '&nbsp;', $format);
+                }
                 // use the underlying translation function to replace the %0 etc placeholders (and translate if necessary)
-                // and preserve spaces in the format string
-                $res = tra(str_replace(' ', '&nbsp;', $format), '', false, $values);
+                $res = tra($format, '', false, $values);
             }
             if ($strip_tags) {
                 $res = strip_tags($res);
@@ -1547,6 +1550,10 @@ class TrackerLib extends TikiLib
                         }
                     }
                     $mid .= ')';
+                } elseif ($filter['type'] == 'r' && is_null($ev) && is_null($fv)) {
+                    $mid .= " AND ( ttif$i.`value`=? OR ttif$i.`value`=? OR ttif$i.`value` IS NULL )";
+                    $bindvars[] = '';
+                    $bindvars[] = '0';
                 } elseif (is_null($ev) && is_null($fv)) { // test null value
                     $mid .= " AND ( ttif$i.`value`=? OR ttif$i.`value` IS NULL )";
                     $bindvars[] = '';
@@ -2153,6 +2160,7 @@ class TrackerLib extends TikiLib
                 $data[$job['field']['permName']] = $value;
                 $this->modify_field($currentItemId, $job['field']['fieldId'], $value);
                 $fil[$job['field']['fieldId']] = $value;
+                $permNames[$job['field']['fieldId']] = $job['field']['permName'];
             }
         }
 
@@ -5033,19 +5041,27 @@ class TrackerLib extends TikiLib
             $join = '?';
             $bindvars = array_merge(['trackeritem', $item_info['itemId']], $bindvars);
         }
-        $count = $this->getOne('SELECT COUNT(DISTINCT `version`) FROM `tiki_tracker_item_field_logs` WHERE `itemId`=?', [$item_info['itemId']]);
-        $page = $this->fetchAll(
-            'SELECT DISTINCT ttifl.`version` FROM `tiki_tracker_item_field_logs` ttifl WHERE ttifl.`itemId`=? ORDER BY `version` DESC',
-            [$item_info['itemId']],
+
+        $itemsBindvars = [$item_info['itemId']];
+        $itemsWhere = '`itemId`=?';
+        if (! empty($filter['version'])) {
+            $itemsWhere .= ' AND `version` = ?';
+            $itemsBindvars[] = $filter['version'];
+        }
+
+        $count = $this->getOne('SELECT COUNT(DISTINCT `version`) FROM `tiki_tracker_item_field_logs` WHERE ' . $itemsWhere, $itemsBindvars);
+        $itemVersions = $this->fetchAll(
+            'SELECT DISTINCT ttifl.`version` FROM `tiki_tracker_item_field_logs` ttifl WHERE ' . $itemsWhere . ' ORDER BY `version` DESC',
+            $itemsBindvars,
             $max,
             $offset
         );
 
-        if (! empty($page)) {
+        if (! empty($itemVersions)) {
             $mid[] = 'ttifl.`version`<=?';
-            $bindvars[] = $page[0]['version'];
+            $bindvars[] = $itemVersions[0]['version'];
             $mid[] = 'ttifl.`version`>=?';
-            $bindvars[] = $page[count($page) - 1]['version'];
+            $bindvars[] = $itemVersions[count($itemVersions) - 1]['version'];
         }
 
         $itemObject = Tracker_Item::fromId($item_info['itemId']);

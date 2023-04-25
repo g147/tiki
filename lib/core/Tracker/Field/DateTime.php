@@ -115,8 +115,14 @@ class Tracker_Field_DateTime extends Tracker_Field_Abstract implements Tracker_F
         // but that expects a full valid date value, so always fails
         TikiLib::lib('header')->add_jq_onready('$.validator.classRuleSettings.date = false;
 ');
-
         TikiLib::lib('smarty')->assign('use_24hr_clock', TikiLib::lib('userprefs')->get_user_clock_pref($user));
+
+        if ($this->getOption('datetime') === 'd') {
+            // offset the UTC-stored timestamp of the date by current display timezone, so we actually display the correct date entered by user
+            $context['timestamp'] = $this->getValue() - TikiDate::tzServerOffset(TikiLib::lib('tiki')->get_display_timezone(), $this->getValue());
+        } else {
+            $context['timestamp'] = $this->getValue();
+        }
         return $this->renderTemplate('trackerinput/datetime.tpl', $context);
     }
 
@@ -130,7 +136,7 @@ class Tracker_Field_DateTime extends Tracker_Field_Abstract implements Tracker_F
         if ($value) {
             if ($this->getOption('datetime') === 'd') {
                 // offset the UTC-stored timestamp of the date by current display timezone, so we actually display the correct date entered by user
-                $value -= TikiDate::tzServerOffset(TikiLib::lib('tiki')->get_display_timezone());
+                $value -= TikiDate::tzServerOffset(TikiLib::lib('tiki')->get_display_timezone(), $value);
             }
             if (isset($context['list_mode']) && $context['list_mode'] == 'csv') {
                 if ($this->getOption('datetime') == 'd') {
@@ -255,6 +261,7 @@ class Tracker_Field_DateTime extends Tracker_Field_Abstract implements Tracker_F
             $helper->setupFormat(str_replace($tikidate->search, $tikidate->replace, $prefs['long_date_format']), $schema->addNew($permName, 'long date format'));
         } else {
             $helper->setupFormat('Y-m-d H:i:s', $schema->addNew($permName, 'yyyy-mm-dd hh:mm:ss'));
+            $helper->setupFormat('Y-m-d H:i:s e', $schema->addNew($permName, 'yyyy-mm-dd hh:mm:ss TZ'));
             $helper->setupFormat(str_replace($tikidate->search, $tikidate->replace, $prefs['short_date_format'] . ' ' . $prefs['short_time_format']), $schema->addNew($permName, 'short datetime format'));
             $helper->setupFormat(str_replace($tikidate->search, $tikidate->replace, $prefs['long_date_format'] . ' ' . $prefs['long_time_format']), $schema->addNew($permName, 'long datetime format'));
         }

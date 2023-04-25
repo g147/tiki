@@ -7100,18 +7100,29 @@ class UsersLib extends TikiLib
         }
     }
 
-    public function create_user_cookie($user, $secret = false)
+    public function create_user_cookie($userId, $secret = '')
     {
         global $prefs;
+
+        // clear all expired cookies to prevent build up of dead data
+        if ($prefs['login_cookies_auto_clean'] === 'y') {
+            $this->deleteExpiredCookies();
+        }
+        if ($prefs['login_multiple_forbidden'] === 'y') {
+            $this->delete_user_cookie($userId);
+        }
+
         if (! $secret) {
             $secret = $this->get_cookie_check();
         }
-        if ($prefs['login_multiple_forbidden'] === 'y') {
-            $this->delete_user_cookie($user);
-        }
 
-        $query = 'insert into `tiki_user_login_cookies`(`userId`, `secret`, `expiration`) values(?, ?, FROM_UNIXTIME(?))';
-        $result = $this->query($query, [$user, $secret, $this->now + $prefs['remembertime']]);
+        $query = 'INSERT INTO `tiki_user_login_cookies` (`userId`, `secret`, `expiration`) VALUES (?, ?, FROM_UNIXTIME(?))
+                 ON DUPLICATE KEY UPDATE `userId` = ?, `secret` = ?, `expiration` = FROM_UNIXTIME(?)';
+
+        $this->query($query, [
+            $userId, $secret, $this->now + $prefs['remembertime'],
+            $userId, $secret, $this->now + $prefs['remembertime']
+        ]);
 
         return $secret;
     }
@@ -7267,7 +7278,7 @@ class UsersLib extends TikiLib
 
         // Validate password here
         if (( $prefs['auth_method'] != 'cas' || $user == 'admin' ) && strlen($pass) < $prefs['min_pass_length']) {
-            $errors[] = tr('Password should be at least %0 characters long', $prefs['min_pass_length']);
+            $errors[] = tr('Password should be at least %0 characters long.', $prefs['min_pass_length']);
         }
 
         if ($prefs['pass_chr_case'] == 'y') {
@@ -7281,7 +7292,7 @@ class UsersLib extends TikiLib
             $previous = '';
             foreach ($chars as $char) {
                 if ($char == $previous) {
-                    $errors[] = tra('Password must not contain a consecutive repetition of the same character such as "111" or "aab"');
+                    $errors[] = tra('Password must not contain a consecutive repetition of the same character such as "111" or "aab".');
                     break;
                 }
                 $previous = $char;
@@ -7293,7 +7304,7 @@ class UsersLib extends TikiLib
         // Check this code
         if ($prefs['pass_chr_num'] == 'y') {
             if (! preg_match_all('/[0-9]+/', $pass) || ! preg_match_all('/[a-z]+/', $pass)) {
-                $errors[] = tra('Password must contain both letters and numbers');
+                $errors[] = tra('Password must contain both letters and numbers.');
             }
         }
 
