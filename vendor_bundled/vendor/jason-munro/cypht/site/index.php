@@ -12,14 +12,14 @@
  * CACHE_ID   unique string to bust js/css browser caching for a new build
  * SITE_ID    random site id used for page keys
  */
-define('APP_PATH', '/home/roberto/tikipack/24.0/tiki-24.0/vendor_bundled/vendor/jason-munro/cypht/');
+define('APP_PATH', '/home/roberto/tikipack/24.1/tiki-24.1/vendor_bundled/vendor/jason-munro/cypht/');
 define('VENDOR_PATH', APP_PATH.'vendor/');
 define('WEB_ROOT', '');
 define('DEBUG_MODE', false);
-define('CACHE_ID', 'yCfCLNlmwcSCAevj79LCDR60osy8PxIdvaQzZqcRY5c%3D');
-define('SITE_ID', 'Pm0heCMNJXudzqPxBa9Gb1Dg98sQLCgTS8GuW9RdloC7ftfAeoE2dUaObJEi1kmc1iKKcKuD7IsOh6xGl9%2BfxA%3D%3D');
-define('JS_HASH', 'sha512-/uer2uTLalvFf4SLcv4gJoVYxRn+hLkVDZtTf4vfnSufJCdE4mrnOxtTvuF1AL0XV6N0yZynxIe5IK92snwpCg==');
-define('CSS_HASH', 'sha512-KoTpZwkE+oAYecfA6KUfcKwTBw0mQPArCYN/vYl8R0yu6nk5n1psJdLhy163Lg3D+6ooMMSZzazQi/ZkYmFEKQ==');
+define('CACHE_ID', 'K6zdCdXkAAr34hAyvE0A%2FDXix42cRmiy9HwY7%2BgEZfs%3D');
+define('SITE_ID', 'tDc9Hax%2B3Hws9yJNx06AsT4KAc1RqMGc53QmjEllpPRRQ6TIcqpdmNogbC%2Big6G71dUQBUu0wb3GkwaQ6u%2B5IQ%3D%3D');
+define('JS_HASH', 'sha512-nkRR+keBqtWZPokrhivvFussRuQOHt1ZD5md8vgxMkwx4+IcdGuX/8KQAyy8J+ad4gyQzEag6DiG2vjSc9lDfQ==');
+define('CSS_HASH', 'sha512-c6zFDIYBrfYW8cvNm6ZsqWvSM3A13UMMz0NMCBEx2hmXBG8XJY/D5AsMDepzjggQbEY8KRulFs7k2+LZaw+aNg==');
 
 /* show all warnings in debug mode */
 if (DEBUG_MODE) {
