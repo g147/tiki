@@ -1,0 +1,24 @@
+---
+post:
+  description: Remove groups
+  requestBody:
+    required: true
+    content:
+      application/x-www-form-urlencoded:
+        schema:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: string
+  responses:
+    '200':
+      description: remove groups response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              feedback:
+                type: object

@@ -1,0 +1,35 @@
+#!/usr/bin/python
+
+import os, sys
+from selenium import webdriver
+
+RECIP='testuser@localhost.localdomain'
+IMAP_ID='2'
+DESIRED_CAP = None
+SITE_URL = 'http://cypht-test.org/'
+USER = 'testuser'
+PASS = 'testuser'
+
+config = {
+    'user': os.environ['BROWSERSTACK_USER'],
+    'key': os.environ['BROWSERSTACK_KEY'],
+    'id': os.environ['BROWSERSTACK_LOCAL_IDENTIFIER'],
+    'name': os.environ['TEST_SUITE'].upper().replace('_', ' ')[:-3]
+}
+
+def get_driver(cap):
+    capabilities = {
+        'browserstack.local': 'true',
+        'browserstack.localIdentifier': config['id'],
+        'os': 'Windows',
+        'os_version': '10',
+        'browser': 'Edge',
+        'resolution': '1920x1080',
+        'name': config['name']
+    }
+    driver_url='http://{0}:{1}@hub-cloud.browserstack.com/wd/hub'.format(config['user'], config['key'])
+    print "BROWSER {0}".format(capabilities['browser'])
+    return webdriver.Remote(desired_capabilities=capabilities, command_executor=driver_url)
+
+def success(driver):
+    pass

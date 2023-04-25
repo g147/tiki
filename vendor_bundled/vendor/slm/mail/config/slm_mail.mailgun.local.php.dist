@@ -1,0 +1,22 @@
+<?php
+
+return array(
+    'slm_mail' => array(
+        'mailgun' => array(
+            /**
+             * Set your Mailgun domain name (eg. mydomain.com)
+             */
+            // 'domain' => '',
+
+            /**
+             * Set your Mailgun API key
+             */
+            // 'key' => ''
+
+            /**
+             * Set your Mailgun API endpoint
+             */
+            'api_endpoint' => 'https://api.mailgun.net/v3'
+        )
+    )
+);

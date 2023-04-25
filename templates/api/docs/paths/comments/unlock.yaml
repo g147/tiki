@@ -1,0 +1,35 @@
+post:
+  description: Unlock comment thread
+  requestBody:
+    required: true
+    content:
+      application/x-www-form-urlencoded:
+        schema:
+          type: object
+          properties:
+            type:
+              type: string
+            objectId:
+              type: string
+  responses:
+    '200':
+      description: unlock response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              type:
+                type: string
+              objectId:
+                type: string
+              status:
+                type: string
+    '403':
+      description: forbidden
+      content:
+        application/json:
+          schema:
+            $ref: schemas-Error.yaml

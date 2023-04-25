@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="xmpp" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <description>Project Coding Standard</description>
+    <file>src/</file>
+
+    <rule ref="PEAR">
+        <!-- Ignore tags from file comment -->
+        <exclude name="PEAR.Commenting.FileComment.MissingCategoryTag" />
+        <exclude name="PEAR.Commenting.FileComment.MissingCopyrightTag" />
+        <exclude name="PEAR.Commenting.FileComment.MissingLicenseTag" />
+        <exclude name="PEAR.Commenting.FileComment.MissingPackageTag" />
+
+        <!-- Ignore tags from class comment -->
+        <exclude name="PEAR.Commenting.ClassComment.MissingAuthorTag" />
+        <exclude name="PEAR.Commenting.ClassComment.MissingCategoryTag" />
+        <exclude name="PEAR.Commenting.ClassComment.MissingCopyrightTag" />
+        <exclude name="PEAR.Commenting.ClassComment.MissingLicenseTag" />
+        <exclude name="PEAR.Commenting.ClassComment.MissingLinkTag" />
+        <exclude name="PEAR.Commenting.ClassComment.MissingPackageTag" />
+    </rule>
+</ruleset>

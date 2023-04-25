@@ -1,0 +1,21 @@
+stages:
+  - test
+
+test:
+  image: rjsmelo/ubuntu-php:7.4-qa
+  stage: test
+  only:
+    - main
+  before_script:
+    - apt-get -y update
+    - apt-get -y install curl dirmngr apt-transport-https lsb-release ca-certificates vim
+    - curl -sL https://deb.nodesource.com/setup_14.x | bash -
+    - apt-get -y install nodejs
+    - npm install -g pm2@latest moneyd ilp-spsp
+    - git clone https://github.com/interledgerjs/ilp-spsp-invoice-server.git /ilp-spsp-invoice-server
+    - npm install /ilp-spsp-invoice-server
+  script:
+    - pm2 start 'moneyd local'
+    - pm2 start /ilp-spsp-invoice-server/index.js
+    - composer install --dev
+    - vendor/bin/phpunit --configuration phpunit.xml --coverage-text --colors=never
