@@ -8,7 +8,6 @@ use Rubix\ML\Other\Helpers\Stats;
 use Rubix\ML\Specifications\PredictionAndLabelCountsAreEqual;
 use Rubix\ML\Exceptions\InvalidArgumentException;
 
-use function count;
 use function array_unique;
 use function array_merge;
 use function array_fill_keys;
@@ -119,8 +118,6 @@ class FBeta implements Metric
         }
 
         $classes = array_unique(array_merge($predictions, $labels));
-
-        $k = count($classes);
 
         $truePos = $falsePos = $falseNeg = array_fill_keys($classes, 0);
 

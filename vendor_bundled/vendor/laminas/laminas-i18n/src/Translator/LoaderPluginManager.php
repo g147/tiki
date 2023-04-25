@@ -3,9 +3,16 @@
 namespace Laminas\I18n\Translator;
 
 use Laminas\I18n\Exception;
+use Laminas\I18n\Translator\Loader\FileLoaderInterface;
+use Laminas\I18n\Translator\Loader\RemoteLoaderInterface;
 use Laminas\ServiceManager\AbstractPluginManager;
 use Laminas\ServiceManager\Exception\InvalidServiceException;
 use Laminas\ServiceManager\Factory\InvokableFactory;
+
+use function get_class;
+use function gettype;
+use function is_object;
+use function sprintf;
 
 /**
  * Plugin manager implementation for translation loaders.
@@ -46,9 +53,13 @@ use Laminas\ServiceManager\Factory\InvokableFactory;
  * </code>
  *
  * You would then specify your custom factory in your service configuration.
+ *
+ * @template InstanceType of RemoteLoaderInterface|FileLoaderInterface
+ * @extends AbstractPluginManager<InstanceType>
  */
 class LoaderPluginManager extends AbstractPluginManager
 {
+    /** @var array<string, class-string> */
     protected $aliases = [
         'gettext'  => Loader\Gettext::class,
         'getText'  => Loader\Gettext::class,
@@ -59,16 +70,17 @@ class LoaderPluginManager extends AbstractPluginManager
         'PhpArray' => Loader\PhpArray::class,
 
         // Legacy Zend Framework aliases
-        \Zend\I18n\Translator\Loader\Gettext::class => Loader\Gettext::class,
-        \Zend\I18n\Translator\Loader\Ini::class => Loader\Ini::class,
-        \Zend\I18n\Translator\Loader\PhpArray::class => Loader\PhpArray::class,
+        'Zend\I18n\Translator\Loader\Gettext'  => Loader\Gettext::class,
+        'Zend\I18n\Translator\Loader\Ini'      => Loader\Ini::class,
+        'Zend\I18n\Translator\Loader\PhpArray' => Loader\PhpArray::class,
 
         // v2 normalized FQCNs
-        'zendi18ntranslatorloadergettext' => Loader\Gettext::class,
-        'zendi18ntranslatorloaderini' => Loader\Ini::class,
+        'zendi18ntranslatorloadergettext'  => Loader\Gettext::class,
+        'zendi18ntranslatorloaderini'      => Loader\Ini::class,
         'zendi18ntranslatorloaderphparray' => Loader\PhpArray::class,
     ];
 
+    /** @var array<string, class-string> */
     protected $factories = [
         Loader\Gettext::class  => InvokableFactory::class,
         Loader\Ini::class      => InvokableFactory::class,
@@ -78,7 +90,7 @@ class LoaderPluginManager extends AbstractPluginManager
         // resolved alias is used as the requested name passed to the factory.
         'laminasi18ntranslatorloadergettext'  => InvokableFactory::class,
         'laminasi18ntranslatorloaderini'      => InvokableFactory::class,
-        'laminasi18ntranslatorloaderphparray' => InvokableFactory::class
+        'laminasi18ntranslatorloaderphparray' => InvokableFactory::class,
     ];
 
     /**
@@ -89,21 +101,21 @@ class LoaderPluginManager extends AbstractPluginManager
      *
      * @param  mixed $plugin
      * @return void
-     * @throws Exception\RuntimeException if invalid
+     * @throws Exception\RuntimeException If invalid.
+     * @psalm-assert InstanceType $plugin
      */
     public function validate($plugin)
     {
-        if ($plugin instanceof Loader\FileLoaderInterface || $plugin instanceof Loader\RemoteLoaderInterface) {
+        if ($plugin instanceof FileLoaderInterface || $plugin instanceof RemoteLoaderInterface) {
             // we're okay
             return;
         }
 
         throw new InvalidServiceException(sprintf(
-            'Plugin of type %s is invalid; must implement %s\Loader\FileLoaderInterface '
-            . 'or %s\Loader\RemoteLoaderInterface',
-            (is_object($plugin) ? get_class($plugin) : gettype($plugin)),
-            __NAMESPACE__,
-            __NAMESPACE__
+            'Plugin of type %s is invalid; must implement %s or %s',
+            is_object($plugin) ? get_class($plugin) : gettype($plugin),
+            FileLoaderInterface::class,
+            RemoteLoaderInterface::class
         ));
     }
 
@@ -112,8 +124,12 @@ class LoaderPluginManager extends AbstractPluginManager
      *
      * Proxies to `validate()`.
      *
+     * @deprecated Since 2.16.0 - This component is no longer compatible with Service Manager v2.
+     *             This method will be removed in version 3.0
+     *
      * @param mixed $plugin
      * @throws Exception\RuntimeException
+     * @psalm-assert InstanceType $plugin
      */
     public function validatePlugin($plugin)
     {
@@ -121,11 +137,10 @@ class LoaderPluginManager extends AbstractPluginManager
             $this->validate($plugin);
         } catch (InvalidServiceException $e) {
             throw new Exception\RuntimeException(sprintf(
-                'Plugin of type %s is invalid; must implement %s\Loader\FileLoaderInterface '
-                . 'or %s\Loader\RemoteLoaderInterface',
-                (is_object($plugin) ? get_class($plugin) : gettype($plugin)),
-                __NAMESPACE__,
-                __NAMESPACE__
+                'Plugin of type %s is invalid; must implement %s or %s',
+                is_object($plugin) ? get_class($plugin) : gettype($plugin),
+                FileLoaderInterface::class,
+                RemoteLoaderInterface::class
             ));
         }
     }

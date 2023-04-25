@@ -175,7 +175,7 @@ final class Event
      */
     public static function createEvent(?EventId $eventId = null): self
     {
-        return new self($eventId, EventType::default());
+        return new self($eventId, EventType::event());
     }
 
     /**
@@ -487,6 +487,27 @@ final class Event
     public function setTags(array $tags): void
     {
         $this->tags = $tags;
+    }
+
+    /**
+     * Sets or updates a tag in this event.
+     *
+     * @param string $key   The key that uniquely identifies the tag
+     * @param string $value The value
+     */
+    public function setTag(string $key, string $value): void
+    {
+        $this->tags[$key] = $value;
+    }
+
+    /**
+     * Removes a given tag from the event.
+     *
+     * @param string $key The key that uniquely identifies the tag
+     */
+    public function removeTag(string $key): void
+    {
+        unset($this->tags[$key]);
     }
 
     /**

@@ -33,6 +33,7 @@ add_handler('settings', 'process_sent_source_max_setting', true, 'imap', 'date',
 add_handler('settings', 'process_text_only_setting', true, 'imap', 'date', 'after');
 add_handler('settings', 'process_msg_part_icons', true, 'imap', 'date', 'after');
 add_handler('settings', 'process_simple_msg_parts', true, 'imap', 'date', 'after');
+add_handler('settings', 'process_pagination_links', true, 'imap', 'date', 'after');
 add_handler('settings', 'process_unread_on_open', true, 'imap', 'date', 'after');
 add_handler('settings', 'process_imap_per_page_setting', true, 'imap', 'date', 'after');
 add_output('settings', 'imap_server_ids', true, 'imap', 'page_js', 'before');
@@ -42,8 +43,10 @@ add_output('settings', 'sent_source_max_setting', true, 'imap', 'sent_since_sett
 add_output('settings', 'text_only_setting', true, 'imap', 'list_style_setting', 'after');
 add_output('settings', 'imap_msg_icons_setting', true, 'imap', 'msg_list_icons_setting', 'after');
 add_output('settings', 'imap_simple_msg_parts', true, 'imap', 'imap_msg_icons_setting', 'after');
+add_output('settings', 'imap_pagination_links', true, 'imap', 'imap_msg_icons_setting', 'after');
 add_output('settings', 'imap_unread_on_open', true, 'imap', 'imap_msg_icons_setting', 'after');
 add_output('settings', 'imap_per_page_setting', true, 'imap', 'imap_simple_msg_parts', 'after');
+add_output('settings', 'imap_per_page_setting', true, 'imap', 'imap_pagination_links', 'after');
 
 /* compose page data */
 add_output('compose', 'imap_server_ids', true, 'imap', 'page_js', 'before');
@@ -294,72 +297,76 @@ return array(
     ),
 
     'allowed_output' => array(
-        'imap_connect_status' => array(FILTER_SANITIZE_STRING, false),
-        'connect_status' => array(FILTER_SANITIZE_STRING, false),
-        'auto_sent_folder' => array(FILTER_SANITIZE_STRING, false),
-        'imap_connect_time' => array(FILTER_SANITIZE_STRING, false),
+        'imap_connect_status' => array(FILTER_SANITIZE_FULL_SPECIAL_CHARS, false),
+        'connect_status' => array(FILTER_SANITIZE_FULL_SPECIAL_CHARS, false),
+        'auto_sent_folder' => array(FILTER_SANITIZE_FULL_SPECIAL_CHARS, false),
+        'imap_connect_time' => array(FILTER_SANITIZE_FULL_SPECIAL_CHARS, false),
         'imap_detail_display' => array(FILTER_UNSAFE_RAW, false),
         'imap_status_display' => array(FILTER_UNSAFE_RAW, false),
         'imap_status_server_id' => array(FILTER_VALIDATE_INT, false),
-        'imap_expanded_folder_path' => array(FILTER_SANITIZE_STRING, false),
+        'imap_expanded_folder_path' => array(FILTER_SANITIZE_FULL_SPECIAL_CHARS, false),
         'imap_expanded_folder_formatted' => array(FILTER_UNSAFE_RAW, false),
-        'imap_server_ids' => array(FILTER_SANITIZE_STRING, false),
+        'imap_server_ids' => array(FILTER_SANITIZE_FULL_SPECIAL_CHARS, false),
         'imap_server_id' => array(FILTER_VALIDATE_INT, false),
-        'combined_inbox_server_ids' => array(FILTER_SANITIZE_STRING, false),
+        'combined_inbox_server_ids' => array(FILTER_SANITIZE_FULL_SPECIAL_CHARS, false),
         'imap_delete_error' => array(FILTER_VALIDATE_BOOLEAN, false),
-        'move_count' => array(FILTER_SANITIZE_STRING, FILTER_REQUIRE_ARRAY),
+        'move_count' => array(FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_REQUIRE_ARRAY),
+        'show_pagination_links' => array(FILTER_VALIDATE_BOOLEAN, false)
     ),
 
     'allowed_get' => array(
         'imap_server_id' => FILTER_VALIDATE_INT,
         'imap_download_message' => FILTER_VALIDATE_BOOLEAN,
         'imap_show_message'  => FILTER_VALIDATE_BOOLEAN,
-        'imap_msg_part' => FILTER_SANITIZE_STRING
+        'imap_msg_part' => FILTER_SANITIZE_FULL_SPECIAL_CHARS
     ),
 
     'allowed_post' => array(
         'server_port' => FILTER_VALIDATE_INT,
-        'server' => FILTER_SANITIZE_STRING,
+        'server' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         'imap_server_id' => FILTER_VALIDATE_INT,
-        'imap_server_ids' => FILTER_SANITIZE_STRING,
-        'imap_user' => FILTER_SANITIZE_STRING,
+        'imap_server_ids' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'imap_user' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         'imap_pass' => FILTER_UNSAFE_RAW,
         'text_only' => FILTER_VALIDATE_BOOLEAN,
         'msg_part_icons' => FILTER_VALIDATE_BOOLEAN,
         'simple_msg_parts' => FILTER_VALIDATE_BOOLEAN,
+        'pagination_links' => FILTER_VALIDATE_BOOLEAN,
         'unread_on_open' => FILTER_VALIDATE_BOOLEAN,
         'imap_allow_images' => FILTER_VALIDATE_BOOLEAN,
-        'imap_delete' => FILTER_SANITIZE_STRING,
-        'imap_connect' => FILTER_SANITIZE_STRING,
+        'imap_delete' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'imap_connect' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         'imap_remember' => FILTER_VALIDATE_INT,
-        'imap_folder_ids' => FILTER_SANITIZE_STRING,
-        'imap_forget' => FILTER_SANITIZE_STRING,
-        'imap_save' => FILTER_SANITIZE_STRING,
-        'submit_imap_server' => FILTER_SANITIZE_STRING,
-        'submit_jmap_server' => FILTER_SANITIZE_STRING,
+        'imap_folder_ids' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'imap_forget' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'imap_save' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'submit_imap_server' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'submit_jmap_server' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         'new_jmap_address' => FILTER_SANITIZE_URL,
-        'new_jmap_name' => FILTER_SANITIZE_STRING,
-        'new_imap_address' => FILTER_SANITIZE_STRING,
+        'new_jmap_name' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'new_imap_address' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         'new_imap_hidden' => FILTER_VALIDATE_BOOLEAN,
         'new_imap_port' => FILTER_VALIDATE_INT,
-        'new_imap_name' => FILTER_SANITIZE_STRING,
+        'new_imap_name' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'sieve_config_host' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'imap_sieve_host' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         'tls' => FILTER_VALIDATE_BOOLEAN,
-        'folder' => FILTER_SANITIZE_STRING,
+        'folder' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         'force_update' => FILTER_VALIDATE_BOOLEAN,
         'imap_folder_state' => FILTER_UNSAFE_RAW,
-        'imap_msg_uid' => FILTER_SANITIZE_STRING,
-        'imap_msg_part' => FILTER_SANITIZE_STRING,
+        'imap_msg_uid' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'imap_msg_part' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         'imap_prefetch' => FILTER_VALIDATE_BOOLEAN,
         'hide_imap_server' => FILTER_VALIDATE_BOOLEAN,
-        'imap_flag_state' => FILTER_SANITIZE_STRING,
+        'imap_flag_state' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         'combined_source_state' => FILTER_VALIDATE_INT,
-        'list_path' => FILTER_SANITIZE_STRING,
-        'imap_move_ids' => FILTER_SANITIZE_STRING,
-        'imap_move_to' => FILTER_SANITIZE_STRING,
-        'imap_move_action' => FILTER_SANITIZE_STRING,
-        'sent_since' => FILTER_SANITIZE_STRING,
-        'sent_per_source' => FILTER_SANITIZE_STRING,
-        'imap_move_page' => FILTER_SANITIZE_STRING,
+        'list_path' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'imap_move_ids' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'imap_move_to' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'imap_move_action' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'sent_since' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'sent_per_source' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
+        'imap_move_page' => FILTER_SANITIZE_FULL_SPECIAL_CHARS,
         'compose_unflag_send' => FILTER_VALIDATE_BOOLEAN,
         'imap_per_page' => FILTER_VALIDATE_INT
     )

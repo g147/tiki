@@ -795,6 +795,10 @@ class H5PValidator {
    * TRUE if the .h5p file is valid
    */
   public function isValidPackage($skipContent = FALSE, $upgradeOnly = FALSE) {
+    // Create a temporary dir to extract package in.
+    $tmpDir = $this->h5pF->getUploadedH5pFolderPath();
+    $tmpPath = $this->h5pF->getUploadedH5pPath();
+
     // Check dependencies, make sure Zip is present
     if (!class_exists('ZipArchive')) {
       $this->h5pF->setErrorMessage($this->h5pF->t('Your PHP version does not support ZipArchive.'), 'zip-archive-unsupported');
@@ -806,10 +810,6 @@ class H5PValidator {
       unlink($tmpPath);
       return FALSE;
     }
-
-    // Create a temporary dir to extract package in.
-    $tmpDir = $this->h5pF->getUploadedH5pFolderPath();
-    $tmpPath = $this->h5pF->getUploadedH5pPath();
 
     // Only allow files with the .h5p extension:
     if (strtolower(substr($tmpPath, -3)) !== 'h5p') {
@@ -993,7 +993,7 @@ class H5PValidator {
         //     - or -
         // - <machineName>-<majorVersion>.<minorVersion>
         // where machineName, majorVersion and minorVersion is read from library.json
-        if ($libraryH5PData['machineName'] !== $file && H5PCore::libraryToString($libraryH5PData, TRUE) !== $file) {
+        if ($libraryH5PData['machineName'] !== $file && H5PCore::libraryToFolderName($libraryH5PData) !== $file) {
           $this->h5pF->setErrorMessage($this->h5pF->t('Library directory name must match machineName or machineName-majorVersion.minorVersion (from library.json). (Directory: %directoryName , machineName: %machineName, majorVersion: %majorVersion, minorVersion: %minorVersion)', array(
               '%directoryName' => $file,
               '%machineName' => $libraryH5PData['machineName'],
@@ -1063,7 +1063,12 @@ class H5PValidator {
               'minorVersion' => $mainDependency['minorVersion']
             ))) {
           foreach ($missingLibraries as $libString => $library) {
-            $this->h5pF->setErrorMessage($this->h5pF->t('Missing required library @library', array('@library' => $libString)), 'missing-required-library');
+            if (!empty($mainDependency) && $library['machineName'] === $mainDependency['machineName']) {
+              $this->h5pF->setErrorMessage($this->h5pF->t('Missing main library @library', array('@library' => $libString )), 'missing-main-library');
+            }
+            else {
+              $this->h5pF->setErrorMessage($this->h5pF->t('Missing required library @library', array('@library' => $libString)), 'missing-required-library');
+            }
             $valid = FALSE;
           }
           if (!$this->h5pC->mayUpdateLibraries()) {
@@ -1615,20 +1620,21 @@ class H5PStorage {
 
     // Go through libraries that came with this package
     foreach ($this->h5pC->librariesJsonData as $libString => &$library) {
-      // Find local library identifier
-      $libraryId = $this->h5pC->getLibraryId($library, $libString);
+      // Find local library with same major + minor
+      $existingLibrary = $this->h5pC->loadLibrary($library['machineName'], $library['majorVersion'], $library['minorVersion']);
 
       // Assume new library
       $new = TRUE;
-      if ($libraryId) {
-        // Found old library
-        $library['libraryId'] = $libraryId;
+      if ($existingLibrary) {
+        $new = false;
+        // We have the library installed already (with the same major + minor)
 
-        if ($this->h5pF->isPatchedLibrary($library)) {
-          // This is a newer version than ours. Upgrade!
-          $new = FALSE;
-        }
-        else {
+        $library['libraryId'] = $existingLibrary['libraryId'];
+
+        // Is this a newer patchVersion?
+        $newerPatchVersion = $existingLibrary['patchVersion'] < $library['patchVersion'];
+
+        if (!$newerPatchVersion) {
           $library['saveDependencies'] = FALSE;
           // This is an older version, no need to save.
           continue;
@@ -1643,10 +1649,11 @@ class H5PStorage {
         H5PMetadata::boolifyAndEncodeSettings($library['metadataSettings']) :
         NULL;
 
-      $this->h5pF->saveLibraryData($library, $new);
-
       // Save library folder
       $this->h5pC->fs->saveLibrary($library);
+
+      // Update our DB
+      $this->h5pF->saveLibraryData($library, $new);
 
       // Remove cached assets that uses this library
       if ($this->h5pC->aggregateAssets && isset($library['libraryId'])) {
@@ -1656,6 +1663,10 @@ class H5PStorage {
 
       // Remove tmp folder
       H5PCore::deleteFileTree($library['uploadDirectory']);
+
+      if ($existingLibrary) {
+        $this->h5pC->fs->deleteLibrary($existingLibrary);
+      }
 
       if ($new) {
         $newOnes++;
@@ -2060,12 +2071,13 @@ class H5PCore {
 
   public static $coreApi = array(
     'majorVersion' => 1,
-    'minorVersion' => 24
+    'minorVersion' => 25
   );
   public static $styles = array(
     'styles/h5p.css',
     'styles/h5p-confirmation-dialog.css',
-    'styles/h5p-core-button.css'
+    'styles/h5p-core-button.css',
+    'styles/h5p-tooltip.css',
   );
   public static $scripts = array(
     'js/jquery.js',
@@ -2077,6 +2089,7 @@ class H5PCore {
     'js/h5p-confirmation-dialog.js',
     'js/h5p-action-bar.js',
     'js/request-queue.js',
+    'js/h5p-tooltip.js',
   );
   public static $adminScripts = array(
     'js/jquery.js',
@@ -2521,7 +2534,7 @@ class H5PCore {
    * @return string
    */
   protected function getDependencyPath(array $dependency) {
-    return 'libraries/' . H5PCore::libraryToString($dependency, TRUE);
+    return 'libraries/' . H5PCore::libraryToFolderName($dependency);
   }
 
   private static function getDependenciesHash(&$dependencies) {
@@ -2721,7 +2734,21 @@ class H5PCore {
    *  On the form {machineName} {majorVersion}.{minorVersion}
    */
   public static function libraryToString($library, $folderName = FALSE) {
-    return (isset($library['machineName']) ? $library['machineName'] : $library['name']) . ($folderName ? '-' : ' ') . $library['majorVersion'] . '.' . $library['minorVersion'];
+    $name = $library['machineName'] ?? $library['name'];
+
+    return "{$name} {$library['majorVersion']}.{$library['minorVersion']}";
+  }
+
+  /**
+   * Get the name of a library's folder name
+   *
+   * @return string
+   */
+  public static function libraryToFolderName($library) {
+    $name = $library['machineName'] ?? $library['name'];
+    $includePatchVersion = $library['patchVersionInFolderName'] ?? false;
+
+    return "{$name}-{$library['majorVersion']}.{$library['minorVersion']}" . ($includePatchVersion ? ".{$library['patchVersion']}" : '');
   }
 
   /**
@@ -3139,6 +3166,8 @@ class H5PCore {
    * @return int Identifier, or FALSE if non-existent
    */
   public function getLibraryId($library, $libString = NULL) {
+    static $libraryIdMap = [];
+
     if (!$libString) {
       $libString = self::libraryToString($library);
     }

@@ -1,6 +1,8 @@
 <?php
-
-use CodeItNow\BarcodeBundle\Utils\QrCode;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 
 /**
  * 2FA modules
@@ -34,7 +36,7 @@ class Hm_Handler_process_enable_2fa extends Hm_Handler_Module {
             $secret = base32_encode_str(create_secret($secret, $username, $len));
             $app_name = $this->config->get('app_name', 'Cypht');
             $uri = sprintf('otpauth://totp/%s:%s?secret=%s&issuer=%s', $app_name, $username, $secret, $app_name);
-            $this->out('2fa_png', generate_qr_code($this->config, $username, $uri));
+            $this->out('2fa_svg', generate_qr_code($this->config, $username, $uri));
             $this->out('2fa_backup_codes', backup_codes($this->user_config));
             $this->out('2fa_secret', $secret);
         }
@@ -51,6 +53,11 @@ class Hm_Handler_2fa_check extends Hm_Handler_Module {
         if (!$enabled) {
             return;
         }
+
+        /*if(!extension_loaded('imagick')){
+            Hm_Msgs::add('ERR2FA The imagick extension is required to use 2fa feature, please contact your administrator for fixing this');
+            return;
+        }*/
 
         list($secret, $simple) = get_2fa_key($this->config);
         if (!$secret) {
@@ -122,8 +129,8 @@ class Hm_Output_enable_2fa_setting extends Hm_Output_Module {
             $res .= ' checked="checked"';
         }
         $res .= '></td></tr>';
-        $png = $this->get('2fa_png');
-        if ($png) {
+        $svg = $this->get('2fa_svg');
+        if ($svg) {
             $qr_code = '<tr class="tfa_setting"><td></td><td>';
             if (!$enabled) {
                 $qr_code .= '<div class="err settings_wrap_text">'.
@@ -133,7 +140,7 @@ class Hm_Output_enable_2fa_setting extends Hm_Output_Module {
                 $qr_code .= '<div>'.$this->trans('Update your settings with the code below').'</div>';
             }
 
-            $qr_code .= '<img alt="" width="200" height="200" src="data:image/png;base64,'.$png.'" />';
+            $qr_code .= $svg;
             $qr_code .= '</td></tr>';
             $qr_code .= '<tr class="tfa_setting"><td></td><td>'.$this->trans('If you can\'t use the QR code, you can enter the code below manually (no line breaks)').'</td></tr>';
             $qr_code .= '<tr class="tfa_setting"><td></td><td>'.wordwrap($this->html_safe($this->get('2fa_secret', '')), 60, '<br />', true).'</td></tr>';
@@ -240,12 +247,13 @@ function base32_encode_str($str) {
  */
 if (!hm_exists('generate_qr_code')) {
 function generate_qr_code($config, $username, $str) {
-    $qr_code = rtrim($config->get('app_data_dir', ''), '/').'/'.$username.'2fa.png';
     require_once VENDOR_PATH.'autoload.php';
-    $qr_code = new QrCode();
-    $qr_code->setText($str);
-    $qr_code->setSize(200);
-    return $qr_code->generate();
+    $renderer = new ImageRenderer(
+        new RendererStyle(200),
+        new SvgImageBackEnd()
+    );
+    $writer = new Writer($renderer);
+    return $writer->writeString($str);
 }}
 
 /**

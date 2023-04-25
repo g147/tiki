@@ -2,7 +2,7 @@
 
 namespace Laminas\Crypt\Symmetric;
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 
 use function array_key_exists;
 use function sprintf;
@@ -16,6 +16,7 @@ use function sprintf;
  */
 class PaddingPluginManager implements ContainerInterface
 {
+    /** @var array<string, string> */
     private $paddings = [
         'pkcs7'     => Padding\Pkcs7::class,
         'nopadding' => Padding\NoPadding::class,
@@ -48,6 +49,6 @@ class PaddingPluginManager implements ContainerInterface
             ));
         }
         $class = $this->paddings[$id];
-        return new $class;
+        return new $class();
     }
 }

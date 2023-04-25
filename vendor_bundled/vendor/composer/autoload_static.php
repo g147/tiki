@@ -4,55 +4,56 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
+class ComposerStaticInit52d4374fbe888d251de1ac5cdc5f77ca
 {
     public static $files = array (
+        'c9d07b32a2e02bc0fc582d4f0c1b56cc' => __DIR__ . '/..' . '/laminas/laminas-servicemanager/src/autoload.php',
         '7e9bd612cc444b3eed788ebbe46263a0' => __DIR__ . '/..' . '/laminas/laminas-zendframework-bridge/src/autoload.php',
-        '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
-        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
-        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
-        'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
         'e8aa6e4b5a1db2f56ae794f1505391a8' => __DIR__ . '/..' . '/amphp/amp/lib/functions.php',
         '76cd0796156622033397994f25b0d8fc' => __DIR__ . '/..' . '/amphp/amp/lib/Internal/functions.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
+        '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
+        'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
         '0d59ee240a4cd96ddbb4ff164fccea4d' => __DIR__ . '/..' . '/symfony/polyfill-php73/bootstrap.php',
-        'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
-        '25072dd6e2470089de65ae7bf11d3109' => __DIR__ . '/..' . '/symfony/polyfill-php72/bootstrap.php',
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
+        '25072dd6e2470089de65ae7bf11d3109' => __DIR__ . '/..' . '/symfony/polyfill-php72/bootstrap.php',
         '6cd5651c4fef5ed6b63e8d8b8ffbf3cc' => __DIR__ . '/..' . '/amphp/byte-stream/lib/functions.php',
-        'def43f6c87e4f8dfd0c9e1b1bab14fe8' => __DIR__ . '/..' . '/symfony/polyfill-iconv/bootstrap.php',
-        '383eaff206634a77a1be54e64e6459c7' => __DIR__ . '/..' . '/sabre/uri/lib/functions.php',
-        '9c67151ae59aff4788964ce8eb2a0f43' => __DIR__ . '/..' . '/clue/stream-filter/src/functions_include.php',
         '5255c38a0faeba867671b61dfda6d864' => __DIR__ . '/..' . '/paragonie/random_compat/lib/random.php',
-        'c2aad8997a98dfc4771bdbffea3d62b7' => __DIR__ . '/..' . '/laminas/laminas-code/polyfill/ReflectionEnumPolyfill.php',
+        '383eaff206634a77a1be54e64e6459c7' => __DIR__ . '/..' . '/sabre/uri/lib/functions.php',
+        '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
+        'def43f6c87e4f8dfd0c9e1b1bab14fe8' => __DIR__ . '/..' . '/symfony/polyfill-iconv/bootstrap.php',
+        '9c67151ae59aff4788964ce8eb2a0f43' => __DIR__ . '/..' . '/clue/stream-filter/src/functions_include.php',
+        'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
         '8cff32064859f4559445b89279f3199c' => __DIR__ . '/..' . '/php-http/message/src/filters.php',
-        'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
-        '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '8dc56fe697ca93c4b40d876df1c94584' => __DIR__ . '/..' . '/amphp/process/lib/functions.php',
         '3da389f428d8ee50333e4391c3f45046' => __DIR__ . '/..' . '/amphp/serialization/src/functions.php',
         'bcb7d4fc55f4b1a7e10f5806723e9892' => __DIR__ . '/..' . '/amphp/sync/src/functions.php',
         'e187e371b30897d6dc51cac6a8c94ff6' => __DIR__ . '/..' . '/amphp/sync/src/ConcurrentIterator/functions.php',
-        '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
+        '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '8f758069bf9eb3411d096c10be343745' => __DIR__ . '/..' . '/rubix/tensor/src/constants.php',
-        '3569eecfeed3bcf0bad3c998a494ecb8' => __DIR__ . '/..' . '/sabre/xml/lib/Deserializer/functions.php',
-        '93aa591bc4ca510c520999e34229ee79' => __DIR__ . '/..' . '/sabre/xml/lib/Serializer/functions.php',
         '2b9d0f43f9552984cfa82fee95491826' => __DIR__ . '/..' . '/sabre/event/lib/coroutine.php',
         'd81bab31d3feb45bfe2f283ea3c8fdf7' => __DIR__ . '/..' . '/sabre/event/lib/Loop/functions.php',
         'a1cce3d26cc15c00fcd0b3354bd72c88' => __DIR__ . '/..' . '/sabre/event/lib/Promise/functions.php',
-        '256c1545158fc915c75e51a931bdba60' => __DIR__ . '/..' . '/lcobucci/jwt/compat/class-aliases.php',
-        '0d273777b2b0d96e49fb3d800c6b0e81' => __DIR__ . '/..' . '/lcobucci/jwt/compat/json-exception-polyfill.php',
-        'd6b246ac924292702635bb2349f4a64b' => __DIR__ . '/..' . '/lcobucci/jwt/compat/lcobucci-clock-polyfill.php',
-        'b46ad4fe52f4d1899a2951c7e6ea56b0' => __DIR__ . '/..' . '/voku/portable-utf8/bootstrap.php',
+        '3569eecfeed3bcf0bad3c998a494ecb8' => __DIR__ . '/..' . '/sabre/xml/lib/Deserializer/functions.php',
+        '93aa591bc4ca510c520999e34229ee79' => __DIR__ . '/..' . '/sabre/xml/lib/Serializer/functions.php',
+        '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
         '430de19db8b7ee88fdbe5c545d82d33d' => __DIR__ . '/..' . '/amphp/parallel/lib/Context/functions.php',
         '888e1afeed2e8d13ef5a662692091e6e' => __DIR__ . '/..' . '/amphp/parallel/lib/Sync/functions.php',
         '384cf4f2eb4d2f896db72315a76066ad' => __DIR__ . '/..' . '/amphp/parallel/lib/Worker/functions.php',
+        'c2aad8997a98dfc4771bdbffea3d62b7' => __DIR__ . '/..' . '/laminas/laminas-code/polyfill/ReflectionEnumPolyfill.php',
+        '256c1545158fc915c75e51a931bdba60' => __DIR__ . '/..' . '/lcobucci/jwt/compat/class-aliases.php',
+        '0d273777b2b0d96e49fb3d800c6b0e81' => __DIR__ . '/..' . '/lcobucci/jwt/compat/json-exception-polyfill.php',
+        'd6b246ac924292702635bb2349f4a64b' => __DIR__ . '/..' . '/lcobucci/jwt/compat/lcobucci-clock-polyfill.php',
         '09f6b20656683369174dd6fa83b7e5fb' => __DIR__ . '/..' . '/symfony/polyfill-uuid/bootstrap.php',
+        'b46ad4fe52f4d1899a2951c7e6ea56b0' => __DIR__ . '/..' . '/voku/portable-utf8/bootstrap.php',
         '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
-        'ebdb698ed4152ae445614b69b5e4bb6a' => __DIR__ . '/..' . '/sabre/http/lib/functions.php',
+        'decc78cc4436b1292c6c0d151b19445c' => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib/bootstrap.php',
         '702239352e6628be5dc71b6fd029e72e' => __DIR__ . '/..' . '/rubix/ml/src/constants.php',
         '0315e8fd3e479309d097647b8ef2920b' => __DIR__ . '/..' . '/rubix/ml/src/functions.php',
+        'ebdb698ed4152ae445614b69b5e4bb6a' => __DIR__ . '/..' . '/sabre/http/lib/functions.php',
         'fb4ca2d97fe7ba6af750497425204e70' => __DIR__ . '/..' . '/sentry/sentry/src/functions.php',
         'bf9f5270ae66ac6fa0290b4bf47867b7' => __DIR__ . '/..' . '/adodb/adodb-php/adodb.inc.php',
         '0c6f877f03a67a7485a2a748706e2f2f' => __DIR__ . '/..' . '/h5p/h5p-core/h5p.classes.php',
@@ -66,6 +67,7 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         '138126db212e09ea471720e87b638b63' => __DIR__ . '/..' . '/h5p/h5p-editor/h5peditor-ajax.class.php',
         '920009c17c818a2668db044d76f129b9' => __DIR__ . '/..' . '/h5p/h5p-editor/h5peditor-storage.interface.php',
         '101279c1523ab77899b4b6921c749836' => __DIR__ . '/..' . '/h5p/h5p-editor/h5peditor-ajax.interface.php',
+        '3109cb1a231dcd04bee1f9f620d46975' => __DIR__ . '/..' . '/paragonie/sodium_compat/autoload.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -97,7 +99,6 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         ),
         'T' => 
         array (
-            'TrueBV\\' => 7,
             'Tiki\\Lib\\Payment\\' => 17,
             'Tiki\\Lib\\' => 9,
             'Tiki\\' => 5,
@@ -159,6 +160,7 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
             'Psr\\Container\\' => 14,
             'PragmaRX\\Google2FA\\Tests\\' => 25,
             'PragmaRX\\Google2FA\\' => 19,
+            'PhpSieveManager\\' => 16,
             'ParagonIE\\ConstantTime\\' => 23,
         ),
         'O' => 
@@ -217,10 +219,6 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
             'Jean85\\' => 7,
             'JAMA\\' => 5,
         ),
-        'I' => 
-        array (
-            'Interop\\Container\\' => 18,
-        ),
         'H' => 
         array (
             'Hybridauth\\' => 11,
@@ -252,7 +250,6 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
             'Composer\\Semver\\' => 16,
             'Composer\\Installers\\' => 20,
             'CoderCat\\JWKToPEM\\' => 18,
-            'CodeItNow\\' => 10,
             'Clue\\StreamFilter\\' => 18,
         ),
         'B' => 
@@ -317,10 +314,6 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         'Wamania\\Snowball\\' => 
         array (
             0 => __DIR__ . '/..' . '/wamania/php-stemmer/src',
-        ),
-        'TrueBV\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/true/punycode/src',
         ),
         'Tiki\\Lib\\Payment\\' => 
         array (
@@ -533,6 +526,10 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         array (
             0 => __DIR__ . '/..' . '/pragmarx/google2fa/src',
         ),
+        'PhpSieveManager\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/henrique-borba/php-sieve-manager/src',
+        ),
         'ParagonIE\\ConstantTime\\' => 
         array (
             0 => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src',
@@ -713,10 +710,6 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         array (
             0 => __DIR__ . '/..' . '/rubix/tensor/lib/JAMA',
         ),
-        'Interop\\Container\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/container-interop/container-interop/src/Interop/Container',
-        ),
         'Hybridauth\\' => 
         array (
             0 => __DIR__ . '/..' . '/hybridauth/hybridauth/src',
@@ -785,10 +778,6 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         'CoderCat\\JWKToPEM\\' => 
         array (
             0 => __DIR__ . '/..' . '/codercat/jwk-to-pem/src',
-        ),
-        'CodeItNow\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/codeitnowin/barcode/CodeItNow',
         ),
         'Clue\\StreamFilter\\' => 
         array (
@@ -1094,9 +1083,7 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         'ADODB_mssql_n' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-mssql_n.inc.php',
         'ADODB_mssqlnative' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-mssqlnative.inc.php',
         'ADODB_mssqlpo' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-mssqlpo.inc.php',
-        'ADODB_mysql' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-mysql.inc.php',
         'ADODB_mysqli' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-mysqli.inc.php',
-        'ADODB_mysqlt' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-mysqlpo.inc.php',
         'ADODB_netezza' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-netezza.inc.php',
         'ADODB_oci8' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-oci8.inc.php',
         'ADODB_oci805' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-oci805.inc.php',
@@ -1156,14 +1143,10 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         'ADORecordSet_db2' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-db2.inc.php',
         'ADORecordSet_db2oci' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-db2oci.inc.php',
         'ADORecordSet_empty' => __DIR__ . '/..' . '/adodb/adodb-php/adodb.inc.php',
-        'ADORecordSet_ext_mysql' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-mysql.inc.php',
-        'ADORecordSet_ext_mysqlt' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-mysqlpo.inc.php',
         'ADORecordSet_ext_oci8' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-oci8.inc.php',
         'ADORecordSet_fbsql' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-fbsql.inc.php',
         'ADORecordSet_ldap' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-ldap.inc.php',
-        'ADORecordSet_mysql' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-mysql.inc.php',
         'ADORecordSet_mysqli' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-mysqli.inc.php',
-        'ADORecordSet_mysqlt' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-mysqlpo.inc.php',
         'ADORecordSet_netezza' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-netezza.inc.php',
         'ADORecordSet_odbc' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-odbc.inc.php',
         'ADORecordSet_odbc_db2' => __DIR__ . '/..' . '/adodb/adodb-php/drivers/adodb-odbc_db2.inc.php',
@@ -1378,7 +1361,7 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         'PEAR_Installer' => __DIR__ . '/..' . '/pear/pear/PEAR/Installer.php',
         'PEAR_Installer_Role' => __DIR__ . '/..' . '/pear/pear/PEAR/Installer/Role.php',
         'PEAR_Installer_Role_Cfg' => __DIR__ . '/..' . '/pear/pear/PEAR/Installer/Role/Cfg.php',
-        'PEAR_Installer_Role_Common' => __DIR__ . '/..' . '/pear/pear/tests/PEAR_Installer_Role/roles/Common.php',
+        'PEAR_Installer_Role_Common' => __DIR__ . '/..' . '/pear/pear/PEAR/Installer/Role/Common.php',
         'PEAR_Installer_Role_Data' => __DIR__ . '/..' . '/pear/pear/PEAR/Installer/Role/Data.php',
         'PEAR_Installer_Role_Dataf' => __DIR__ . '/..' . '/pear/pear/tests/PEAR_Installer_Role/roles/Dataf.php',
         'PEAR_Installer_Role_Doc' => __DIR__ . '/..' . '/pear/pear/PEAR/Installer/Role/Doc.php',
@@ -1446,6 +1429,7 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         'PclZip' => __DIR__ . '/..' . '/pclzip/pclzip/pclzip.lib.php',
         'Person' => __DIR__ . '/..' . '/adodb/adodb-php/tests/test-active-record.php',
         'PersonPhone_Table' => __DIR__ . '/..' . '/pear/pear/tests/PEAR_Command_Package/package/packagefiles/DB_Table/tests/database/db1/PersonPhone_Table.php',
+        'PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
         'Pool' => __DIR__ . '/..' . '/pear/pear/tests/PEAR_Command_Pickle/pickle/packagefiles/http/docs/examples/Parallel_Requests_.php',
         'RecursiveCallbackFilterIterator' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderVolumeLocalFileSystem.class.php',
         'Rugrat' => __DIR__ . '/..' . '/adodb/adodb-php/tests/test-active-relationsx.php',
@@ -1700,6 +1684,7 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         'elFinderPluginNormalizer' => __DIR__ . '/..' . '/studio-42/elfinder/php/plugins/Normalizer/plugin.php',
         'elFinderPluginSanitizer' => __DIR__ . '/..' . '/studio-42/elfinder/php/plugins/Sanitizer/plugin.php',
         'elFinderPluginWatermark' => __DIR__ . '/..' . '/studio-42/elfinder/php/plugins/Watermark/plugin.php',
+        'elFinderPluginWinRemoveTailDots' => __DIR__ . '/..' . '/studio-42/elfinder/php/plugins/WinRemoveTailDots/plugin.php',
         'elFinderSession' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderSession.php',
         'elFinderSessionInterface' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderSessionInterface.php',
         'elFinderTriggerException' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinder.class.php',
@@ -1720,7 +1705,7 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         'elFinderVolumeTrashMySQL' => __DIR__ . '/..' . '/studio-42/elfinder/php/elFinderVolumeTrashMySQL.class.php',
         'example' => __DIR__ . '/..' . '/pear/pear/tests/PEAR_Command_Package/package/packagefiles/DB_Table/tests/bogotest.php',
         'fake_log' => __DIR__ . '/..' . '/pear/pear/tests/download_test_classes.php.inc',
-        'gronk' => __DIR__ . '/..' . '/pear/pear/tests/PEAR_Packager/packagefiles/foo.php',
+        'gronk' => __DIR__ . '/..' . '/pear/pear/tests/PEAR_Command_Package/package-validate/packagefiles/foo.php',
         'perf_db2' => __DIR__ . '/..' . '/adodb/adodb-php/perf/perf-db2.inc.php',
         'perf_informix' => __DIR__ . '/..' . '/adodb/adodb-php/perf/perf-informix.inc.php',
         'perf_mssql' => __DIR__ . '/..' . '/adodb/adodb-php/perf/perf-mssql.inc.php',
@@ -1728,6 +1713,7 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
         'perf_mysql' => __DIR__ . '/..' . '/adodb/adodb-php/perf/perf-mysql.inc.php',
         'perf_oci8' => __DIR__ . '/..' . '/adodb/adodb-php/perf/perf-oci8.inc.php',
         'perf_postgres' => __DIR__ . '/..' . '/adodb/adodb-php/perf/perf-postgres.inc.php',
+        'perf_sqlite3' => __DIR__ . '/..' . '/adodb/adodb-php/perf/perf-sqlite3.inc.php',
         'person' => __DIR__ . '/..' . '/adodb/adodb-php/tests/test-active-relations.php',
         'phpCAS' => __DIR__ . '/..' . '/jasig/phpcas/source/CAS.php',
         'test_PEAR_Command_Channels' => __DIR__ . '/..' . '/pear/pear/tests/PEAR_Command_Channels/setup.php.inc',
@@ -1758,10 +1744,10 @@ class ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInita22ff91a341ceadd7a37c0fa2d0289c3::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit52d4374fbe888d251de1ac5cdc5f77ca::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit52d4374fbe888d251de1ac5cdc5f77ca::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit52d4374fbe888d251de1ac5cdc5f77ca::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit52d4374fbe888d251de1ac5cdc5f77ca::$classMap;
 
         }, null, ClassLoader::class);
     }

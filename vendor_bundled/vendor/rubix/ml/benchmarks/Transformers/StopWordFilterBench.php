@@ -28,12 +28,12 @@ class StopWordFilterBench
 
     public function setUp() : void
     {
-        $k = (int) strlen(self::SAMPLE_TEXT) / 8;
+        $k = (int) (strlen(self::SAMPLE_TEXT) / 8);
 
         $samples = [];
 
         for ($i = 0; $i < self::DATASET_SIZE; ++$i) {
-            $samples[] = str_split(self::SAMPLE_TEXT, $k) ?: [];
+            $samples[] = str_split(self::SAMPLE_TEXT, $k);
         }
 
         $this->dataset = new Unlabeled($samples);

@@ -30,6 +30,9 @@ class Hm_Handler_nux_dev_news extends Hm_Handler_Module {
         Hm_Functions::c_setopt($ch, CURLOPT_USERAGENT, $this->request->server["HTTP_USER_AGENT"]);
         $curl_result = Hm_Functions::c_exec($ch);
         if (trim($curl_result)) {
+            if (strstr($curl_result, 'API rate limit exceeded')) {
+                return;
+            }
             $json_commits = json_decode($curl_result);
             foreach($json_commits as $c) {
                 $msg = trim($c->commit->message);
@@ -208,6 +211,8 @@ class Hm_Handler_process_nux_add_service extends Hm_Handler_Module {
                     }
                     $this->session->close_early();
                     $this->out('nux_account_added', true);
+                    $this->out('nux_server_id', $new_id);
+                    $this->out('nux_service_name', $form['nux_service']);
                 }
                 else {
                     Hm_IMAP_List::del($new_id);

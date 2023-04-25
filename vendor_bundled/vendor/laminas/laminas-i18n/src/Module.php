@@ -2,12 +2,20 @@
 
 namespace Laminas\I18n;
 
+use Laminas\ModuleManager\ModuleManager;
+use Laminas\ServiceManager\ConfigInterface;
+
+/**
+ * @see ConfigInterface
+ *
+ * @psalm-import-type ServiceManagerConfigurationType from ConfigInterface
+ */
 class Module
 {
     /**
      * Return laminas-i18n configuration for laminas-mvc application.
      *
-     * @return array
+     * @return array<string, ServiceManagerConfigurationType>
      */
     public function getConfig()
     {
@@ -23,13 +31,13 @@ class Module
     /**
      * Register a specification for the TranslatorPluginManager with the ServiceListener.
      *
-     * @param \Laminas\ModuleManager\ModuleManager $moduleManager
+     * @param ModuleManager $moduleManager
      * @return void
      */
     public function init($moduleManager)
     {
-        $event = $moduleManager->getEvent();
-        $container = $event->getParam('ServiceManager');
+        $event           = $moduleManager->getEvent();
+        $container       = $event->getParam('ServiceManager');
         $serviceListener = $container->get('ServiceListener');
 
         $serviceListener->addServiceManager(

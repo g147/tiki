@@ -81,14 +81,18 @@ class Hm_Output_theme_setting extends Hm_Output_Module {
         $res = '<tr class="general_setting"><td><label for="theme_setting">'.
             $this->trans('Theme').'</label></td>'.
             '<td><select id="theme_setting" name="theme_setting">';
+        $reset = '';
         foreach ($this->get('themes', array()) as $name => $label) {
             $res .= '<option ';
             if ($name == $current) {
                 $res .= 'selected="selected" ';
+                if ($name != 'default') {
+                    $reset = '<span class="tooltip_restore" restore_aria_label="Restore default value"><img alt="Refresh" class="refresh_list reset_default_value_select"  src="'.Hm_Image_Sources::$refresh.'" /></span>';
+                }
             }
             $res .= 'value="'.$this->html_safe($name).'">'.$this->trans($label).'</option>';
         }
-        $res .= '</select>';
+        $res .= '</select>'.$reset;
         return $res;
     }
 }
@@ -173,6 +177,7 @@ function hm_theme_icons($color='white') {
         'audio' => false,
         'camera' => false,
         'menu' => false,
+        'three_dot' => false,
 
         'w' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AgKAxYt3lxNfAAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAzElEQVQ4y+3TMSvFURjH8b9Qt5h0bV6CwaqYlLp1V6lbdsnsLXgBhmsz8AIUd7izlNVgt0kRRikfy6N+3f68AHm28z3ffufpPOc0zX812mup9jZq/YpOsZUUG8ziOdhahJ8E3wo+wCi7OA5xWKyDt+Dn4V9ikAHrIT5VV9u4C/6OBXTxgrkMmMJ9yH1cYAc3wXexh7O2yzwMcVynzGM/+BWu0WsLWJ6YxGnxRXwU+8QjZn4a6W0EbAYfBT/67U0clPSA6YmxfdfqH/sKX5nYdtZS9A38AAAAAElFTkSuQmCC',
 
